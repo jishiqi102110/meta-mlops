@@ -18,8 +18,7 @@ abstract class RedisFeatureInfo(val jedisClusterName: JedisClusterName,
                                 val isCompress: Boolean,
                                 val serializeType: SerializeTypeEnum,
                                 val defaultVal: FieldValue,
-                                val featureType: FeatureTypeEnum
-                               ) extends Serializable {
+                                val featureType: FeatureTypeEnum) extends Serializable {
 
   protected val generic_type: String
 
@@ -106,7 +105,7 @@ abstract class RedisFeatureInfo(val jedisClusterName: JedisClusterName,
 
 }
 
-object RedisFeatureInfo {
+private[meta] object RedisFeatureInfo {
   //private lazy val simpleHttp =
 
   private def deleteMeta(): Unit = {

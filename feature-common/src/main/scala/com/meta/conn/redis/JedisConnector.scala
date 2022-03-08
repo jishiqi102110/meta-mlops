@@ -46,12 +46,12 @@ object JedisConnector extends Serializable {
           jedisClusterName.timeout)
 
         var sleepTime: Int = SLEET_TIME
-        // scalastyle:off
-        var jedis: Jedis = null
 
-        while (jedis == null) {
+        var jedis: Option[Jedis] = None
+
+        while (jedis.isEmpty) {
           try {
-            jedis = redisMap(jedisClusterName.host).getResource
+            jedis = Some(redisMap(jedisClusterName.host).getResource)
           }
           catch {
             case e: JedisConnectionException

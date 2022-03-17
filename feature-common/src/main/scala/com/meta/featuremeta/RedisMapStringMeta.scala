@@ -11,7 +11,6 @@ import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
  * @author weitaoliang
  * @version V1.0
  * */
-//scalastyle:off
 class RedisMapStringMeta(jedisClusterName: JedisClusterName,
                           redisKeyPattern: String,
                           redisField: String,
@@ -20,5 +19,4 @@ class RedisMapStringMeta(jedisClusterName: JedisClusterName,
                           featureType: FeatureTypeEnum
                         ) extends RedisFeatureMeta[FeatureDTO.MAP_STRING_STRING](
   jedisClusterName, redisKeyPattern, redisField, dataSource, true, SerializeTypeEnum.PROTO,
-  defaultVal, featureType) with Serializable {
-}
+  defaultVal, featureType) with Serializable

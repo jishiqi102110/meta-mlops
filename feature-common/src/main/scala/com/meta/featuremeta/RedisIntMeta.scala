@@ -7,7 +7,8 @@ import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
 
 
 /**
- * INT类型特征抽象 对应的是 [[FeatureDTO.INT32]]
+ * INT类型特征抽象
+ * 对应的是 [[FeatureDTO.INT32]]
  *
  * @author weitaoliang
  * @version V1.0

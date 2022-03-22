@@ -133,11 +133,10 @@ object Hive2RedisUtils {
                           batch_size: Int,
                           redisTTL: Int): Unit = {
     keyAndFields.foreachPartition {
-      partion =>
+      partition =>
         val jedis = JedisConnector(jedisClusterName)
-        val dataList = partion.toArray
-
-        // fixme: 这里的算法有个问题，就是最后一个partion的分组数据没有被写入后续修复下
+        val dataList = partition.toArray
+        // 这里将数据划分为多个段，每个段batch_size 个记录进行redis的操作，采用pipeline 形式入库
         val nStep = math.ceil(dataList.size / batch_size.toDouble).toInt
 
         for (index <- 0 to nStep) {

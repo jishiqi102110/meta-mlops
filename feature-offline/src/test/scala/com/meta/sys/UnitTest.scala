@@ -36,7 +36,7 @@ class UnitTest {
     val df = spark.sparkContext.parallelize(arr).toDF("id", "intValue", "stringValue")
     df.createTempView("DF")
 
-    val sql = "select id,intValue,stringValue from DF limit 2"
+    val sql = "select id,intValue,stringValue from DF limit 3"
     spark.sql(sql).show()
     val defaultValue = Map(
       "intValue" -> 0,
@@ -71,6 +71,29 @@ class UnitTest {
     println(intFieldMeta.get("id2"))
     println(intFieldMeta.get("id3"))
 
+  }
+
+  @Test
+  def testPartitionSlice(): Unit = {
+
+    // 这里重新测试了下没有问题
+
+    val dataList = Array(1, 2, 3, 4, 5, 6, 7)
+    val batch_size = 2
+    val nStep = math.ceil(dataList.size / batch_size.toDouble).toInt
+
+    for (index <- 0 to nStep) {
+      val lowerIndex = batch_size * index
+      val upperIndex = if (lowerIndex + batch_size >= dataList.size) {
+        dataList.size
+      }
+      else {
+        batch_size * (index + 1)
+      }
+      val batchData = dataList.slice(lowerIndex, upperIndex)
+      println(batchData.mkString("-"))
+    }
+    println(nStep)
   }
   // scalastyle:on println
 }

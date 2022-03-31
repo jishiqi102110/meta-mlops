@@ -1,0 +1,10 @@
+/feature-common/target/
+/feature-common/feature-common.iml
+/feature-offline/target/
+/feature-offline/feature-offline.iml
+/feature-offline/mlstudio-webserver.log
+/feature-online/target/
+/.idea/
+/target/
+/feature-online/feature-online.iml
+/meta-feature-store.iml

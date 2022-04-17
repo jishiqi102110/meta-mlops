@@ -1,6 +1,7 @@
 package com.meta.feature
 
-import com.meta.conn.tdbank.{TDBanReceiverConfig, TDbankStreamingContext}
+import com.meta.conn.tdbank.TDbankStreamingContext.fromStreamingContext
+import com.meta.conn.tdbank.{TDBanReceiverConfig}
 import org.apache.spark.SparkConf
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -13,16 +14,16 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 object SparkStreamingTDbankConsumer {
 
-  val master = "tl-tdbank-tdmanager.tencent-distribute.com:8099"
-  val group = "t_ieg_5_b_ieg_o2_rt_cg_yky_algorithm_exposure_factor_etl_1_001" // 消费者组，填写申请的group名
-  val topic = "ieg_o2_rt" // 要消费的消息主题
-  val tids = Array("yky_algorithm_exposure_factor") // 指定消费的接口id
+  private final val master = "tl-tdbank-tdmanager.tencent-distribute.com:8099"
+  private final val group = "t_ieg_5_b_ieg_o2_rt_cg_yky_algorithm_exposure_factor_etl_1_001" // 消费者组，填写申请的group名
+  private final val topic = "ieg_o2_rt" // 要消费的消息主题
+  private final val tids = Array("yky_algorithm_exposure_factor") // 指定消费的接口id
+  private final val DURATION = 5
 
   def main(args: Array[String]): Unit = {
+
     /*
-
       第一步：配置SparkConf
-
       */
     val sparkConf = new SparkConf().setAppName("TDbank consumer")
 
@@ -34,7 +35,10 @@ object SparkStreamingTDbankConsumer {
 
      */
 
-    implicit val ssc = new StreamingContext(sparkConf, Seconds(5))
+    implicit val ssc = new StreamingContext(sparkConf, Seconds(DURATION))
+
+    val numExecutors = sparkConf.getInt("spark.executor.instances", 0)
+
 
     val tdBankReceiverConfig = new TDBanReceiverConfig()
       .setMaster(master)
@@ -45,9 +49,22 @@ object SparkStreamingTDbankConsumer {
       .setFilterOnRemote(true) // 开启过滤id
       .setStorageLevel(StorageLevel.MEMORY_AND_DISK)
 
-    val text = new TDbankStreamingContext(ssc).tdBankTextStream(tdBankReceiverConfig, 0)
-    ssc.tdBankTextStream(tdBankReceiverConfig, 0)
+    val textStream = ssc.tdBankTextStream(tdBankReceiverConfig, numExecutors)
 
+    textStream.foreachRDD{
+      rdd=>
+        rdd.foreachPartition{
+          partion=>
+            partion.foreach{
+              line=>
+                println(s"textStream  $line")
+            }
+        }
+    }
+
+    ssc.start()
+
+    ssc.awaitTermination()
 
   }
 }

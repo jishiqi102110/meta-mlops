@@ -11,7 +11,7 @@ import org.apache.spark.streaming.dstream.DStream
  */
 
 
-class TDbankStreamingContext(ssc: StreamingContext) {
+private[meta] class TDbankStreamingContext(ssc: StreamingContext) {
   private def sparkConf = ssc.sparkContext.getConf
 
   def tdBankTextStream(conf: TDBanReceiverConfig, numReceivers: Int): DStream[String] = {
@@ -36,11 +36,10 @@ class TDbankStreamingContext(ssc: StreamingContext) {
     }
     tdbank.textStream(conf, numExecutors)
   }
+}
 
-  object TDbankStreamingContext {
-    implicit def fromStreamingContext(ssc: StreamingContext): TDbankStreamingContext = {
-      new TDbankStreamingContext(ssc)
-    }
+private[meta] object TDbankStreamingContext {
+  implicit def fromStreamingContext(ssc: StreamingContext): TDbankStreamingContext = {
+    new TDbankStreamingContext(ssc)
   }
-
 }

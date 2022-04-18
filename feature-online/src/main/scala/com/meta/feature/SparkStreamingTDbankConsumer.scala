@@ -15,7 +15,9 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 object SparkStreamingTDbankConsumer {
 
   private final val master = "tl-tdbank-tdmanager.tencent-distribute.com:8099"
-  private final val group = "t_ieg_5_b_ieg_o2_rt_cg_yky_algorithm_exposure_factor_etl_1_001" // 消费者组，填写申请的group名
+
+  // 消费者组，填写申请的group名
+  private final val group = "t_ieg_5_b_ieg_o2_rt_cg_yky_algorithm_exposure_factor_etl_1_001"
   private final val topic = "ieg_o2_rt" // 要消费的消息主题
   private final val tids = Array("yky_algorithm_exposure_factor") // 指定消费的接口id
   private final val DURATION = 5

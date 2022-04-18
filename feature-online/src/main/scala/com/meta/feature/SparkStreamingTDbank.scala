@@ -44,8 +44,6 @@ object SparkStreamingTDbank {
 
 
       val ssc = new StreamingContext(sparkConf,Seconds(5))
-      ssc.tdBankTextStream
-
 
       /**
 

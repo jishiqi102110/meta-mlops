@@ -53,10 +53,10 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
     </dependency>
-    <dependency>
-        <groupId>com.tencent.rainbow</groupId>
-        <artifactId>rainbow-sdk-java</artifactId>
-    </dependency>
+<!--    <dependency>-->
+<!--        <groupId>com.tencent.rainbow</groupId>-->
+<!--        <artifactId>rainbow-sdk-java</artifactId>-->
+<!--    </dependency>-->
 
 </dependencies>
 

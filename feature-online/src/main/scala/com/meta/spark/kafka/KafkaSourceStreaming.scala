@@ -6,6 +6,8 @@ import org.apache.spark.streaming.{Duration, StreamingContext}
 import org.apache.spark.streaming.dstream.DStream
 
 /**
+ * kafka消息Streaming工具
+ *
  * kafka 集群信息
  * jedis 为记录kafka 消费offset ,如果传入是null则由kafka自己记录
  * 同一个kafka集群的多个topic用 ","隔开，不同kafka 集群的topic 用";"隔开,
@@ -28,10 +30,10 @@ class KafkaSourceStreaming(val brokers: String,
 
   def getKafkaDStream(ssc: StreamingContext): DStream[(String, String)] = {
     JedisConnector(jedisName.get)
-    val jedisCluster = if (jedisName.isEmpty) None else Some(JedisConnector(jedisName.get))
+    val jedis = if (jedisName.isEmpty) None else Some(JedisConnector(jedisName.get))
     val dsTreams = (brokers.split(";") zip topics.split(";")).map {
       case (broker, topic) =>
-        StreamingUtils.getKafkaStream(topic, broker, groupid, jedisName, ssc, consumerParamers)
+        StreamingUtils.getKafkaStream(topic, broker, groupid, jedis, ssc, consumerParamers)
     }
     ssc.union(dsTreams)
   }

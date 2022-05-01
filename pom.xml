@@ -322,6 +322,20 @@
                 <artifactId>rainbow-sdk-java</artifactId>
                 <version>${rainbow.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>${spark.groupId}</groupId>
+                <artifactId>spark-streaming-kafka-0-10-assembly_${scala.binary.version}</artifactId>
+                <version>${spark.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>${spark.groupId}</groupId>
+                        <artifactId>spark-tags_${scala.binary.version}</artifactId>
+                    </exclusion>
+                </exclusions>
+                <scope>provided</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

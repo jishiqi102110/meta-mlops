@@ -58,6 +58,18 @@
 <!--        <artifactId>rainbow-sdk-java</artifactId>-->
 <!--    </dependency>-->
 
+    <dependency>
+        <groupId>${spark.groupId}</groupId>
+        <artifactId>spark-streaming-kafka-0-10-assembly_${scala.binary.version}</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>${spark.groupId}</groupId>
+                <artifactId>spark-tags_${scala.binary.version}</artifactId>
+            </exclusion>
+        </exclusions>
+        <scope>provided</scope>
+    </dependency>
+
 </dependencies>
 
 </project>

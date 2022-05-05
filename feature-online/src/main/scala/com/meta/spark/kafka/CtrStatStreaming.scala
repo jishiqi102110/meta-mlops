@@ -1,21 +1,22 @@
 package com.meta.spark.kafka
 
-import com.meta.conn.redis.JedisClusterName
+import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
 import com.meta.featuremeta.RedisFloatMeta
+import com.meta.spark.monitor.SparkMonitor
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.dstream.DStream
 
-import java.time.Duration
 import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._ //scalastyle:ignore
+import scala.collection.JavaConversions._
+import scala.collection.mutable //scalastyle:ignore
 
 
 class CtrStatStreaming(spark: SparkSession,
                        kafkaSource: KafkaSourceStreaming,
                        rediKeyPrefix: String,
-                       jedisClusterNames: Array[JedisClusterName],
+                       jedisClusterName: JedisClusterName,
                        idFunArray: Array[(String, String => String)],
                        parseDstream: DStream[(String, String)] =>
                          DStream[(Int, String, Set[(String, String)])],
@@ -28,10 +29,14 @@ class CtrStatStreaming(spark: SparkSession,
   private val redisCtrMetasMap = collection.mutable.Map.empty[(String, String), RedisFloatMeta]
   private val redisShowMetasMap = collection.mutable.Map.empty[(String, String), RedisFloatMeta]
   private val redisClickMetasMap = collection.mutable.Map.empty[(String, String), RedisFloatMeta]
+  private val seqOp = (agg: ShowClickAggregator,
+                       showClickInfo: (Int, Set[(String, String)])
+                      ) => agg.add(showClickInfo)
 
-  private val seqOp = null //(agg:ShowClickCountAggrator)
-  private val comOp = null
+  private val comOp = (agg1: ShowClickAggregator, agg2: ShowClickAggregator
+                      ) => agg1.merge(agg2)
 
+  // ctr特征处理
   protected def saveCtr(spark: SparkSession,
                         events: DStream[(Int, String, Set[(String, String)])],
                         idFunArray: Array[(String, String => String)]
@@ -53,7 +58,7 @@ class CtrStatStreaming(spark: SparkSession,
                     setValueType(FeatureDTO.FieldValue.ValueType.FLOAT).
                     setValue(FeatureDTO.Value.newBuilder.setFloatVal(defaultClick)).
                     build()
-                  val featureInfo = new RedisFloatMeta(jedisClusterNames(0), redisKeyPattern,
+                  val featureInfo = new RedisFloatMeta(jedisClusterName, redisKeyPattern,
                     s"{$condName}", "streaming", fieldValue, FeatureTypeEnum.CROSS)
                   featureInfo.register()
                   ((cateName, condName), featureInfo)
@@ -69,7 +74,7 @@ class CtrStatStreaming(spark: SparkSession,
                 setValueType(FeatureDTO.FieldValue.ValueType.FLOAT).
                 setValue(FeatureDTO.Value.newBuilder.setFloatVal(defaultClick)).
                 build()
-              new RedisFloatMeta(jedisClusterNames(0), s"click_$redisKeyPattern",
+              new RedisFloatMeta(jedisClusterName, s"click_$redisKeyPattern",
                 redisMeta.redisField, "streaming", fieldValue, FeatureTypeEnum.ITEM)
           }
 
@@ -80,7 +85,7 @@ class CtrStatStreaming(spark: SparkSession,
                 setValueType(FeatureDTO.FieldValue.ValueType.FLOAT).
                 setValue(FeatureDTO.Value.newBuilder.setFloatVal(defaultShow)).
                 build()
-              new RedisFloatMeta(jedisClusterNames(0), s"show_$redisKeyPattern",
+              new RedisFloatMeta(jedisClusterName, s"show_$redisKeyPattern",
                 redisMeta.redisField, "streaming", fieldValue, FeatureTypeEnum.ITEM)
           }
 
@@ -91,7 +96,7 @@ class CtrStatStreaming(spark: SparkSession,
               setValue(FeatureDTO.Value.newBuilder.setFloatVal(defaultCtr)).
               build()
 
-            val featureInfo = new RedisFloatMeta(jedisClusterNames(0), redisKeyPattern,
+            val featureInfo = new RedisFloatMeta(jedisClusterName, redisKeyPattern,
               null, "", fieldValue, FeatureTypeEnum.ITEM)
             featureInfo.register()
           }
@@ -101,16 +106,99 @@ class CtrStatStreaming(spark: SparkSession,
         val cacheRDD = rdd.map {
           case (clicked, cateInfo, condInfo) =>
             (cateInfo, (clicked, condInfo))
-        } //.aggregateByKey()
-        // todo 主体需要修改
+        }.aggregateByKey(new ShowClickAggregator)(seqOp, comOp)
         for ((cateName, idFun) <- idFunArray) {
+          cacheRDD.map {
+            case (id, agg) =>
+              (idFun(id), agg)
+          }.reduceByKey(_ merge _).foreach {
+            case (cateID, aggregator) =>
+              val jedis = JedisConnector(jedisClusterName)
+              val redisKeyPattern = s"${rediKeyPrefix}_$cateName:{$cateID}"
+              val showKey = s"show_$redisKeyPattern"
+              val clickKey = s"click_$redisKeyPattern"
+
+              val oldShow = {
+                val num = jedis.get(showKey)
+                if (num == null) 0.0f else num.toFloat
+              }
+              val oldClick = {
+                val num = jedis.get(clickKey)
+                if (num == null) 0.0f else num.toFloat
+              }
+
+              val newSaveTotalShow = oldShow * alpha + aggregator.totalShow
+              val newSaveTotalClick = oldClick * alpha + aggregator.totalClick
+
+              val ctr = (defaultClick + newSaveTotalClick) / (defaultShow + newSaveTotalShow)
+              // todo 修复
+              jedis.set(redisKeyPattern, ctr.toString)
+              jedis.expire(redisKeyPattern, redisTTL)
+
+              jedis.set(showKey, newSaveTotalShow.toString)
+              jedis.expire(showKey, redisTTL)
+              jedis.set(clickKey, newSaveTotalClick.toString)
+              jedis.expire(clickKey, redisTTL)
+              (aggregator.condClickMap.keySet ++ aggregator.condShowMap.keySet).groupBy(_._1).foreach {
+                case (condName, iter) =>
+                  val condIDs = iter.map(_._2).toArray
+                  val redisCtrMeta = redisCtrMetasMap(cateName, condName)
+                  val redisClickMeta = redisClickMetasMap(cateName, condName)
+                  val redisShowMeta = redisShowMetasMap(cateName, condName)
+                  val saveCondTotalShow = redisShowMeta.getFieldValue(cateID, condIDs: _*)
+                  val saveCondTotalClick = redisClickMeta.getFieldValue(cateID, condIDs: _*)
+                  val ctrs = saveCondTotalShow.map {
+                    case (k, v) =>
+                      val value = v.getValue.getFloatVal
+                      val newSaveCondTotalShow = value * alpha + aggregator.condShowMap.getOrElse((condName, k), 0)
+                      val newSaveCondTotalClick = saveCondTotalClick(k).getValue.getFloatVal * alpha + aggregator.condClickMap.getOrElse((condName, k), 0)
+                      val ctr = (defaultClick + newSaveTotalClick) / (defaultShow + newSaveCondTotalShow)
+                      (k, (newSaveCondTotalShow, newSaveCondTotalClick, ctr))
+                  }
+                  if (ctrs.nonEmpty) {
+                    val showMetas = ctrs.mapValues {
+                      x =>
+                        FeatureDTO.FieldValue.newBuilder().
+                          setValueType(FeatureDTO.FieldValue.ValueType.FLOAT).
+                          setValue(FeatureDTO.Value.newBuilder.setFloatVal(x._1)).
+                          build()
+                    }
+                    redisShowMeta.saveField(cateID, showMetas)
+
+                    val clickMetas = ctrs.mapValues {
+                      x =>
+                        FeatureDTO.FieldValue.newBuilder().
+                          setValueType(FeatureDTO.FieldValue.ValueType.FLOAT).
+                          setValue(FeatureDTO.Value.newBuilder.setFloatVal(x._2)).
+                          build()
+                    }
+                    redisClickMeta.saveField(cateID, clickMetas)
+
+                    val ctrMetas = ctrs.mapValues {
+                      x =>
+                        FeatureDTO.FieldValue.newBuilder().
+                          setValueType(FeatureDTO.FieldValue.ValueType.FLOAT).
+                          setValue(FeatureDTO.Value.newBuilder.setFloatVal(x._3)).
+                          build()
+                    }
+                    redisCtrMeta.saveField(cateID, ctrMetas)
+
+                    redisClickMeta.expire(cateID, redisTTL)
+                    redisShowMeta.expire(cateID, redisTTL)
+                    redisCtrMeta.expire(cateID, redisTTL)
+                  }
+              }
+
+
+          }
         }
+        SparkMonitor.synStreamingMonitor(spark, kafkaSource.groupid, time)
     }
   }
 
   def run(): Unit = {
-    // todo 这里需要修改
-    val ssc = StreamingContext.getActiveOrCreate(() => new StreamingContext(spark.sparkContext, kafkaSource.batchDuration))
+    val ssc = StreamingContext.getActiveOrCreate(
+      () => new StreamingContext(spark.sparkContext, kafkaSource.batchDuration))
     ssc.sparkContext.setLogLevel("ERROR")
     val partitionNum = spark.sparkContext.getConf.get("spark.executor.instances").toInt
     val kafkaStream = kafkaSource.getKafkaDStream(ssc).repartition(partitionNum)

@@ -15,7 +15,7 @@ class ShowClickAggregator extends Serializable {
   private[kafka] var totalClick = 0
 
   // add 操作
-  def add(showClickInfo: (Int, mutable.Set[(String, String)])): this.type = {
+  def add(showClickInfo: (Int, Set[(String, String)])): this.type = {
     val (clicked, cond) = showClickInfo
     clicked match {
       case 0 =>

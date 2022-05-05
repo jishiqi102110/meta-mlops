@@ -6,8 +6,8 @@ import com.meta.entity.FeatureDTO.FieldValue
 import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
 
 /**
- * 序列特征格式，存储的格式还是为字符串string，但是格式固定，为针对当前业务专门为序列特征抽象的格式，
- * 格式为timeStamp1:x1,x2,x3,xn| timeStamp2:y1,y2,y3,yn，序列之间用'|'分割，列之间用','分割
+ * 序列特征格式，存储的格式还是为Array[String]，但是格式固定，为针对当前业务专门为序列特征抽象的格式，
+ * 格式为timeStamp1:x1    timeStamp2:y1  一个时间戳对应一个序列
  * 对应的是 [[FeatureDTO.SeqList]]
  *
  * @author weitaoliang

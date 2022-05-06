@@ -16,7 +16,7 @@ object HbaseRowKeyUtils {
   def getKey(uuid: String, timeStamp: Long, id: String, ttl: Long): String = {
     val key = new StringBuilder
     // 时间戳后三位为分桶id(3)
-    key.append(getHashID(uuid, partionNum = DEFAULT_PARTITION_NUM))
+    key.append(getHashID(uuid, DEFAULT_PARTITION_NUM))
     // 时间戳变成ttl余数
     key.append((timeStamp % ttl / 1000).formatted("%010d"))
     // uuid取9位
@@ -26,10 +26,24 @@ object HbaseRowKeyUtils {
     key.toString()
   }
 
-  def getHashID(key: Any, partionNum: Int): String = {
+  // 根据token 生成rowkey,一个请求对应一个rowkey
+  // rowkey 分桶id(3byte) +时间戳（10byte）+uuid(9byte)
+  def getkey(uuid: String, timeStamp: Long, ttl: Long,
+             partitionNum: Int = DEFAULT_PARTITION_NUM): String = {
+    val key = new StringBuilder
+    // 时间戳后3位作为分桶id
+    key.append(getHashID(uuid, partitionNum))
+    // 时间戳变成ttl余数
+    key.append((timeStamp % ttl / 1000).formatted("%010d"))
+    // uuid取9位
+    key.append(getSampledUUID(uuid, timeStamp))
+    key.toString()
+  }
+
+  def getHashID(key: Any, partitionNum: Int): String = {
     val code = if (key == null) 0 else key.hashCode() ^ (key.hashCode() >>> 16)
-    val len = (partionNum - 1).toString.length
-    Math.abs(code % partionNum).formatted(s"%0${len}d")
+    val len = (partitionNum - 1).toString.length
+    Math.abs(code % partitionNum).formatted(s"%0${len}d")
   }
 
   private def getSampledUUID(uuid: String, timwStamp: Long): String = {

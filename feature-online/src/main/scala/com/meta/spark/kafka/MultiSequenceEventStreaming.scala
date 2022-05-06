@@ -34,7 +34,6 @@ class MultiSequenceEventStreaming(spark: SparkSession,
     new DelayDStream(kafkaSource.getKafkaDStream(ssc)).setDelayDuration(delayDuration)
   }
 
-
   // events (唯一标志,Array(时间时间，事件标志))
   // 考虑在同一个streaming 中将不同的序列特征存储到不同的redisKey，减少数据消费消耗
   // idFuctionArray  Array(field,通过id获取其他id的方法,保存行为最大长度，行为保存最大时长) 建议保存短期行为，时长不超过2天

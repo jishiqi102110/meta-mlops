@@ -3,6 +3,7 @@ package com.meta.spark.kafka
 import com.meta.spark.monitor.SparkMonitor
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.streaming.dstream.DelayDStream
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 
 /**

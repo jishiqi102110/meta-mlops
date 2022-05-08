@@ -7,6 +7,7 @@ import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 
 import scala.collection.mutable.ArrayBuffer
 import com.meta.spark.monitor.SparkMonitor
+import org.apache.spark.streaming.dstream.DelayDStream
 
 /**
  * kafka异步处理工具类，里面加载了任务监控组件，可以用来监控任务堆积情况

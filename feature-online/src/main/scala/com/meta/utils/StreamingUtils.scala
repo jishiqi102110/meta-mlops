@@ -9,6 +9,8 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.{CanCommitOffsets, HasOffsetRanges, KafkaUtils, OffsetRange}
 import org.slf4j.{Logger, LoggerFactory}
 import redis.clients.jedis.{Jedis}
+import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 /**
  * streamingUtils 用来产生kafka stream
@@ -37,8 +39,7 @@ object StreamingUtils {
         ConsumerConfig_DESERIALIZER_CLASS_CONFIG,
       ConsumerConfig.GROUP_ID_CONFIG -> groupID,
       ConsumerConfig.AUTO_OFFSET_RESET_CONFIG -> "latest",
-      ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG -> (false)
-    )
+      ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG -> java.lang.Boolean.FALSE)
   }
 
   // 提交kafka消费记录到redis
@@ -141,7 +142,7 @@ object StreamingUtils {
         s"acquire kafka consumer key :$consumersOffsetKey" +
         "#####################"
     )
-    var fromOffsets: Map[TopicPartition, java.lang.Long]
+    val fromOffsets: Map[TopicPartition, java.lang.Long]
     = fillFromOffset(topics, consumersOffsetKey, jedis)
 
     val directKafkaStream = KafkaUtils.createDirectStream[String, String](

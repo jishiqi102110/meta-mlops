@@ -3,7 +3,7 @@ package com.meta.sys
 import com.meta.conn.redis.JedisClusterName
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
 import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
-import com.meta.featuremeta.{RedisFeatureInfo, RedisFloatMeta, RedisIntMeta, RedisSeqList, RedisStringMeta}
+import com.meta.featuremeta.{RedisFeatureInfo, RedisFloatMeta, RedisIntMeta, RedisSeqListMeta, RedisStringMeta}
 import org.apache.spark.sql.types.{DoubleType, FloatType, IntegerType, StringType}
 import org.apache.spark.sql.{DataFrame, Row}
 
@@ -57,7 +57,7 @@ object SparkMetaUtils {
                 .build()
               // 这里seq_list 时间序列类型的特征列名必须按照 time_seq_ 为前缀
               if (fieldName.startsWith("time_seq_")) {
-                new RedisSeqList(jedisClusterName, redisKeyPattern, fieldName, dataSource,
+                new RedisSeqListMeta(jedisClusterName, redisKeyPattern, fieldName, dataSource,
                   StringDefaultVal, featureType(redisKeyPattern, fieldName))
               } else {
                 new RedisStringMeta(jedisClusterName, redisKeyPattern, fieldName, dataSource, true, StringDefaultVal, featureType(redisKeyPattern, fieldName))

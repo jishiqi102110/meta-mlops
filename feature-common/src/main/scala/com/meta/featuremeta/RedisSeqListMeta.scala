@@ -14,7 +14,7 @@ import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
  * @version V1.0
  * */
 
-class RedisSeqList(jedisClusterName: JedisClusterName,
+class RedisSeqListMeta(jedisClusterName: JedisClusterName,
                    redisKeyPattern: String,
                    redisField: String,
                    dataSource: String,

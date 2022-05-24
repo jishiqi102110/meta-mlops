@@ -3,7 +3,7 @@ package com.meta.spark.kafka
 import com.meta.conn.redis.JedisClusterName
 import com.meta.entity.FeatureDTO
 import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
-import com.meta.featuremeta.{RedisFeatureMeta, RedisSeqList}
+import com.meta.featuremeta.{RedisFeatureMeta, RedisSeqListMeta}
 import com.meta.spark.monitor.SparkMonitor
 import org.apache.spark.FutureAction
 import org.apache.spark.sql.SparkSession
@@ -25,7 +25,7 @@ class MultiSequenceEventStreaming(spark: SparkSession,
                                   delayDuration: Duration = Seconds(10)) extends Serializable {
 
   private val futureActions = new mutable.ArrayBuffer[FutureAction[Long]]()
-  private val metaInfoMap = mutable.Map.empty[(String, String), RedisSeqList]
+  private val metaInfoMap = mutable.Map.empty[(String, String), RedisSeqListMeta]
 
   private val dsTreams = mutable.ArrayBuffer[DStream[Boolean]]()
   val kafkaStream: DStream[(String, String)] = {
@@ -59,7 +59,7 @@ class MultiSequenceEventStreaming(spark: SparkSession,
     metaInfoMap ++= idFuctionArray.map {
       case (eventName, _, _, _) =>
         ((redisKeyPattern, eventName),
-          new RedisSeqList(saveJedisClusterName, redisKeyPattern,
+          new RedisSeqListMeta(saveJedisClusterName, redisKeyPattern,
             eventName, kafkaSource.topics, seqDefault, featureType))
     }
 

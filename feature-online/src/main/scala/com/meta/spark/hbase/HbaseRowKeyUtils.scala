@@ -28,7 +28,7 @@ object HbaseRowKeyUtils {
 
   // 根据token 生成rowkey,一个请求对应一个rowkey
   // rowkey 分桶id(3byte) +时间戳（10byte）+uuid(9byte)
-  def getkey(uuid: String, timeStamp: Long, ttl: Long,
+  def getKey(uuid: String, timeStamp: Long, ttl: Long,
              partitionNum: Int = DEFAULT_PARTITION_NUM): String = {
     val key = new StringBuilder
     // 时间戳后3位作为分桶id

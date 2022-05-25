@@ -28,6 +28,8 @@ class DataFlowConfigReader extends Serializable {
   private var _hbaseConfig: HbaseInfoConfig = _
   // tfRecord 配置
   private var _tfRecordConfig: Array[TFFeatureConfig] = _
+  // 配置需要剔除的特征列表
+  private var _excludes: Array[String] = _
 
   // 给featureMetas 排序，没有前置依赖的特征排在前面
   private def sortFeatureMeta(featureMetas: Array[RedisFeatureMetaWrapper]
@@ -77,7 +79,7 @@ class DataFlowConfigReader extends Serializable {
   private def loadFromXml(elem: Elem): Unit = {
     _redisNames = (elem \ "redisInfos" \ "redisInfo").map {
       redisInfoNode =>
-        // 提取xml文件redis 相关配置
+        // 1.提取xml文件redis 相关配置
         val redisName = (redisInfoNode \ "redisName").text
         val redisAddress = (redisInfoNode \ "redisAddress").text
         val port = (redisInfoNode \ "port").text
@@ -94,7 +96,7 @@ class DataFlowConfigReader extends Serializable {
           timeout = timeOut.toInt, redisType = redisEnum))
     }.toMap
 
-    // 提取xml meta相关配置
+    // 2.提取xml meta相关配置
     _featureMetas = (elem \ "featureMetas" \ "featureMeta").map {
       featureMetaNode =>
         // 提取xml文件featureMeta相关配置
@@ -147,7 +149,7 @@ class DataFlowConfigReader extends Serializable {
         }
         new RedisFeatureMetaWrapper(redisField, feaureMeta, isCache)
     }.toArray
-    // 进行排序
+    // 3.进行排序
     _featureMetas = sortFeatureMeta(_featureMetas)
     // 提取xml hbase相关配置
 
@@ -160,7 +162,7 @@ class DataFlowConfigReader extends Serializable {
       new HbaseInfoConfig(new HbaseConnectInfo(clusterName, zookeeperQuorum, port),
         tableName, ttl.toLong)
     }
-    // 提取转化操作
+    // 4.提取转化操作
     _transformers = (elem \ "transformers" \ "transformer").map {
       transformer =>
         // 提取方法
@@ -174,10 +176,19 @@ class DataFlowConfigReader extends Serializable {
         val transformedFeatureName = (transformer \ "transformedFeatureName").text
         new TransformerConf(method, featureName, params, constantParams, transformedFeatureName)
     }.toArray
+
+    // 5.提取剔除特征配置
+    _excludes = (elem \ "execludes" \ "execlude").map {
+      execlude =>
+        (execlude \ "featureName").text
+    }.toArray
+    // todo
+    // 6.获取hbase配置
+    // 7.获取tfrecord配置
   }
 
   // 从resource目录下读取
-  def loadFromResources(fileName: String): DataFlowConfigReader = {
+  private def loadFromResources(fileName: String): DataFlowConfigReader = {
     val in = getClass.getClassLoader.getResourceAsStream(fileName)
     val elem = scala.xml.XML.load(in)
     loadFromXml(elem)
@@ -185,7 +196,7 @@ class DataFlowConfigReader extends Serializable {
   }
 
   // 从文件目录下读取
-  def loadFromFile(path: String): DataFlowConfigReader = {
+  private def loadFromFile(path: String): DataFlowConfigReader = {
     val elem = scala.xml.XML.load(path)
     loadFromXml(elem)
     this
@@ -201,4 +212,20 @@ class DataFlowConfigReader extends Serializable {
 
   def tfRecordConfig: Array[TFFeatureConfig] = _tfRecordConfig
 
+  def excludes: Array[String] = _excludes
+
+}
+
+object DataFlowConfigReader {
+  // 从resource目录下读取
+  def loadFromResources(fileName: String): DataFlowConfigReader = {
+    val config = new DataFlowConfigReader
+    config.loadFromResources(fileName)
+  }
+
+  // 从文件目录下读取
+  def loadFromFile(path: String): DataFlowConfigReader = {
+    val config = new DataFlowConfigReader
+    config.loadFromFile(path)
+  }
 }

@@ -2,7 +2,7 @@ package com.meta.sys
 
 import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
-import com.meta.featuremeta.{RedisFeatureInfo, RedisIntMeta}
+import com.meta.featuremeta.{RedisFeatureInfo, RedisFeatureMeta, RedisIntMeta}
 import com.sun.org.slf4j.internal.LoggerFactory
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
@@ -25,6 +25,7 @@ import scala.collection.JavaConversions._ //scalastyle:ignore
 object Hive2RedisUtils {
   private val logger = LoggerFactory.getLogger(Hive2RedisUtils.getClass)
   private final val CHAR_SET_NAME = "UTF-8"
+
 
   def runSql(spark: SparkSession,
              sql: String,
@@ -117,8 +118,8 @@ object Hive2RedisUtils {
     fieldUpdateNum
   }
 
-  private def featureMonitor(
-                              featureMetasAndGetFeatureMethods: Seq[(RedisFeatureInfo, Row => Array[Byte])]): Unit = {
+  private def featureMonitor(featureMetasAndGetFeatureMethods:
+                             Seq[(RedisFeatureInfo, Row => Array[Byte])]): Unit = {
     featureMetasAndGetFeatureMethods.map(_._1).foreach {
       featureInfo =>
         featureInfo.register()

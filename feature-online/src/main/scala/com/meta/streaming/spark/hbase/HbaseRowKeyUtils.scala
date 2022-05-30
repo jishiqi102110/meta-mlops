@@ -1,4 +1,4 @@
-package com.meta.spark.hbase
+package com.meta.streaming.spark.hbase
 
 /**
  * hbase rowkey生成工具

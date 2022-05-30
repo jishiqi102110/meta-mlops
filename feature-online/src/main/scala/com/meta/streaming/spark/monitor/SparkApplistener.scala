@@ -1,11 +1,10 @@
-package com.meta.spark.monitor
+package com.meta.streaming.spark.monitor
 
 import com.alibaba.fastjson.JSONObject
-import org.apache.hadoop.mapreduce.jobhistory.TaskFailed
-import org.apache.spark.{ExceptionFailure, ExecutorLostFailure, FetchFailed, TaskCommitDenied, TaskFailedReason, TaskKilled}
 import org.apache.spark.internal.Logging
 import org.apache.spark.scheduler.{SparkListener, SparkListenerTaskEnd}
 import org.apache.spark.sql.SparkSession
+import org.apache.spark._
 
 /**
  * 扩展sparkListener 用来监听spark异步任务

@@ -1,6 +1,6 @@
-package com.meta.spark.kafka
+package com.meta.streaming.spark.kafka
 
-import com.meta.spark.kafka.conn.KafkaConnector
+import com.meta.conn.kafka.KafkaConnector
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.spark.FutureAction
 import org.apache.spark.rdd.RDD

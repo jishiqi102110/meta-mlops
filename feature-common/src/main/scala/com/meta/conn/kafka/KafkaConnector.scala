@@ -1,9 +1,9 @@
-package com.meta.spark.kafka.conn
+package com.meta.conn.kafka
 
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
+
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
-
 /**
  * kafka 连接器
  *

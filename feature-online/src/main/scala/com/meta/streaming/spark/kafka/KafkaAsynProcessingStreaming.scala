@@ -1,12 +1,12 @@
-package com.meta.spark.kafka
+package com.meta.streaming.spark.kafka
 
+import com.meta.streaming.spark.monitor.SparkMonitor
 import org.apache.spark.FutureAction
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 
 import scala.collection.mutable.ArrayBuffer
-import com.meta.spark.monitor.SparkMonitor
 import org.apache.spark.streaming.dstream.DelayDStream
 
 /**

@@ -1,4 +1,4 @@
-package com.meta.spark.kafka.conn
+package com.meta.streaming.spark.kafka
 
 /**
  * kafka 数据源

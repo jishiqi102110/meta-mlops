@@ -17,17 +17,14 @@ object HbaseConnector extends Serializable {
 
   @transient private lazy val connectMap = new mutable.HashMap[String, Connection]()
 
-  // hbase连接器
-  def createConnector(hbaseConfig: Map[String, String]): Connection = {
-    val config = HBaseConfiguration.create()
-    for ((k, v) <- hbaseConfig) {
-      config.set(k, v)
-    }
-    ConnectionFactory.createConnection(config)
-  }
-
-  // apply函数用于构造连接器
+  /**
+   * apply函数,默认构建连接方式
+   *
+   * @Param [hbaseConnectInfo]
+   * @return 返回Connection
+   */
   def apply(hbaseConnectInfo: HbaseConnectInfo): Connection = {
+
     if (!connectMap.contains(hbaseConnectInfo.name)) {
       // 保证线程安全，防止spark多核运行时的连接过多问题
       HbaseConnector.synchronized {
@@ -44,5 +41,20 @@ object HbaseConnector extends Serializable {
       }
     }
     connectMap(hbaseConnectInfo.name)
+  }
+
+  /**
+   * 提供更高级别连接器，丰富参数
+   *
+   * @Param [hbaseConfig]
+   * @return 返回Connection
+   */
+  def createConnector(hbaseConfig: Map[String, String]): Connection = {
+
+    val config = HBaseConfiguration.create()
+    for ((k, v) <- hbaseConfig) {
+      config.set(k, v)
+    }
+    ConnectionFactory.createConnection(config)
   }
 }

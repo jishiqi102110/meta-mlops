@@ -12,5 +12,5 @@ import com.meta.entity
 object RedisEnum extends Enumeration {
   type RedisEnum = Value
   val SSD_REDIS: entity.RedisEnum.Value = Value("ssd_redis")
-  val REDIS: entity.RedisEnum.Value = Value("redis")
+  val CACHE_REDIS: entity.RedisEnum.Value = Value("cache_redis")
 }

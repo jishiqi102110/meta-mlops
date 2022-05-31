@@ -4,6 +4,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+
 /**
  * kafka 连接器
  *
@@ -12,6 +13,12 @@ import scala.collection.JavaConversions._
 
 object KafkaConnector {
 
+  /**
+   * 创建链接方法
+   *
+   * @Param [brokers, params]
+   * @return KafkaProducer[String, String]
+   */
   def newProducer(brokers: String,
                   params: Map[String, String] = Map.empty[String, String])
   : KafkaProducer[String, String] = {

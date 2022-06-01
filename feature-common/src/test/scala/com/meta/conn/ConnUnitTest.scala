@@ -12,7 +12,10 @@ import org.junit.Test
  * @version V1.0
  */
 class ConnUnitTest {
-  // hbase使用示例
+
+  /**
+   * hbase使用示例
+   */
   @Test
   def testHbase(): Unit = {
     // 构建hbase连接器，只需要调用连接器伴生对象的apply函数
@@ -20,6 +23,7 @@ class ConnUnitTest {
 
     // 创建方式1，默认创建方式，直接传入 HbaseConnectInfo
     val conn = HbaseConnector(h1)
+
     // 创建方式2也可以通过传入配置创建连接,这个方法可以传入更多参数
     val configMap = Map(
       ("hbase.zookeeper.property.clientPort", "XXX"),
@@ -28,7 +32,10 @@ class ConnUnitTest {
     val conn2 = HbaseConnector.createConnector(configMap)
   }
 
-  // redis 使用示例
+
+  /**
+   * redis 使用示例
+   */
   @Test
   def testRedis(): Unit = {
     val test_cache = new JedisClusterName(

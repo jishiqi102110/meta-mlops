@@ -5,6 +5,11 @@ meta-feature-store
 
 ## 项目概览
 ### feature-common
+
+特征元数据抽象
+特征数据库设计
+
+
 主要负责特征sdk抽象、底层数据库访问、工具包
 
 其中vector 相关操作

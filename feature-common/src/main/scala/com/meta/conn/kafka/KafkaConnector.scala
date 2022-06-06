@@ -9,6 +9,7 @@ import scala.collection.JavaConversions._
  * kafka 连接器
  *
  * @author: weitaoliang
+ * @version v1.0
  * */
 
 object KafkaConnector {

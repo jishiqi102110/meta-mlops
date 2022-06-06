@@ -8,7 +8,6 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 /**
  * @author weitaoliang 
- * @Description:
  *
  */
 
@@ -51,14 +50,16 @@ object SparkStreamingTDbankConsumer {
       .setFilterOnRemote(true) // 开启过滤id
       .setStorageLevel(StorageLevel.MEMORY_AND_DISK)
 
+    // 这里就可以使用 TDbankStreamingContext 里的伴生对象的隐式函数，把StreamingContext 转化成  TDbankStreamingContext
+    // 直接使用ssc调用 tdBankTextStream方法
     val textStream = ssc.tdBankTextStream(tdBankReceiverConfig, numExecutors)
 
-    textStream.foreachRDD{
-      rdd=>
-        rdd.foreachPartition{
-          partion=>
-            partion.foreach{
-              line=>
+    textStream.foreachRDD {
+      rdd =>
+        rdd.foreachPartition {
+          partion =>
+            partion.foreach {
+              line =>
                 println(s"textStream  $line")
             }
         }

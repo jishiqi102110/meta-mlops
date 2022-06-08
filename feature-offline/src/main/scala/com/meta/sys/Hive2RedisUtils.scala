@@ -14,9 +14,7 @@ import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._ //scalastyle:ignore
 
 /**
- * 离线特征入库工具类
- *
- * 帮助用户使用sql就可以完成特征的注册及入库，只需要调用 runSql函数即可，此方法是特征平台离线特征入库平台的底层SDK
+ * 离线特征入库工具类,帮助用户使用sql就可以完成特征的注册及入库，只需要调用 runSql函数即可，此方法是特征平台离线特征入库平台的底层SDK
  *
  * @author weitaoliang
  * @version V1.0
@@ -80,6 +78,18 @@ object Hive2RedisUtils {
     )
   }
 
+
+  /**
+   * 特征入库hmset方法
+   *
+   * @Param [spark] sparkSession对象
+   * @Param [generateDF] 将spark对象转换为DF的方法
+   * @Param [getIDFromRow] 获取key填充符的方法
+   * @Param [featureMetasAndGetFeatureMethods] 特征元数据信息及将row转化为特征序列化值的方法数组
+   * @Param [jedisClusterName] 封装的特征存储集群
+   * @Param [batch_size] 这里传入写入redis pipeline模式一次性提交多少命令，默认20,减少redis IO压力,提高写入性能
+   * @Param [redisTTL] 特征存储的过期时间,默认60天
+   */
   def runHMset(spark: SparkSession,
                generateDF: SparkSession => DataFrame,
                getIDFromRow: Row => String,
@@ -89,15 +99,16 @@ object Hive2RedisUtils {
                redisTTL: Int = 60 * 24 * 60 * 60
               ): Unit = {
     import spark.implicits._ //scalastyle:ignore
-
     val startTimeStamp = System.currentTimeMillis()
 
+    // 检测是否有异常特征
     assert(featureMetasAndGetFeatureMethods.map(
       x => (x._1.redisKeyPattern, x._1.jedisClusterName))
       .distinct.length == 1, "所有field的key必须是同一个！！")
 
     val keyAndFields = generateFeatureBytes(spark, generateDF, getIDFromRow,
       featureMetasAndGetFeatureMethods)
+
     setToRedis(keyAndFields, jedisClusterName, batch_size, redisTTL)
     val endTimeStamp = System.currentTimeMillis()
 
@@ -107,12 +118,22 @@ object Hive2RedisUtils {
     featureMonitor(featureMetasAndGetFeatureMethods)
   }
 
+  /**
+   * 生成特征序列化结果方法
+   *
+   * @Param [spark]  sparkSession对象
+   * @Param [generateDF] 将spark对象转换为DF的方法
+   * @Param [getIDFromRow] 获取key填充符的方法
+   * @Param [featureMetasAndGetFeatureMethods] 特征元数据信息及将row转化为特征序列化值的方法数组
+   * @return RDD[Option[(String, mutable.Map[Array[Byte], Array[Byte]])]]
+   */
   private def generateFeatureBytes(spark: SparkSession,
                                    generateDF: SparkSession => DataFrame,
                                    getIDFromRow: Row => String,
                                    featureMetasAndGetFeatureMethods:
                                    Seq[(RedisFeatureInfo, Row => Array[Byte])])
   : RDD[Option[(String, mutable.Map[Array[Byte], Array[Byte]])]] = {
+
     import spark.implicits._ // scalastyle:ignore
     val fieldUpdateNum = generateDF(spark).rdd.map {
       row =>
@@ -144,12 +165,19 @@ object Hive2RedisUtils {
     }
   }
 
-  private def setToRedis(
-                          keyAndFields:
-                          RDD[Option[(String, mutable.Map[Array[Byte], Array[Byte]])]],
-                          jedisClusterName: JedisClusterName,
-                          batch_size: Int,
-                          redisTTL: Int): Unit = {
+  /**
+   * 入库redis方法,采用pipeline异步接口模式，合并请求减少客户端与redis网络开销
+   *
+   * @Param [keyAndFields] 特征key及对应hash数据bytesmap
+   * @Param [jedisClusterName] 封装的特征存储集群
+   * @Param [batch_size] 这里传入写入redis pipeline模式一次性提交多少命令，默认20,减少redis IO压力,提高写入性能
+   * @Param [redisTTL] 特征存储的过期时间,默认60天
+   */
+  private def setToRedis(keyAndFields:
+                         RDD[Option[(String, mutable.Map[Array[Byte], Array[Byte]])]],
+                         jedisClusterName: JedisClusterName,
+                         batch_size: Int,
+                         redisTTL: Int): Unit = {
     keyAndFields.foreachPartition {
       partition =>
         val jedis = JedisConnector(jedisClusterName)
@@ -169,10 +197,11 @@ object Hive2RedisUtils {
           val pipeline = jedis.pipelined()
           batchData.map(_.get).foreach {
             case (redisKey, jMap) =>
+              // 采用随机打印方式查看日志
               if (Random.nextDouble() <= 0.00001) {
-                // scalastyle:off println
-                println("入库redis中,redisKey is " + redisKey + ", ttl is " + redisTTL)
-                // scalastyle:on println
+                logger.info("***********************************************")
+                logger.info("入库redis中,redisKey is " + redisKey + ", ttl is " + redisTTL)
+                logger.info("***********************************************")
               }
               pipeline.hmset(redisKey.getBytes(CHAR_SET_NAME), jMap)
               pipeline.expire(redisKey, redisTTL)

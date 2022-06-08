@@ -13,13 +13,11 @@ import org.junit.Test
  * @version v1.0
  * */
 class UnitTest {
-  // scalastyle:off println
 
-  @Test
-  def testPrintln(): Unit = {
-    println("hello")
-  }
 
+
+  // method longer than 50 lines
+  // scalastyle:off
   @Test
   def testRunSql(): Unit = {
     // 这里必须加个bin 目录，不加会报找不到utils,这里设置后就不用去设置hadoop环境变量了
@@ -33,16 +31,24 @@ class UnitTest {
     import spark.implicits._
 
     val arr = Array(("id1", 2, "f1"), ("id2", 1, "f2"), ("id3", 3, "f3"))
+
+    // 构造特征入库DF,其中必须包含特征 redisKeyPattern 的填充符,如下的例子就是“id” ,需要入库注册的特征包括 intValue、StringValue
     val df = spark.sparkContext.parallelize(arr).toDF("id", "intValue", "stringValue")
     df.createTempView("DF")
 
-    val sql = "select id,intValue,stringValue from DF limit 3"
+    // 定义用户sql,查询数据
+    val sql = "select id,intValue,stringValue from DF"
+
+    // 数据展示
     spark.sql(sql).show()
+
+    // 特征默认值填充
     val defaultValue = Map(
       "intValue" -> 0,
       "stringValue" -> "null"
     )
 
+    // 调用入库函数进行特征注册及入库
     Hive2RedisUtils.runSql(
       spark,
       sql,
@@ -52,9 +58,8 @@ class UnitTest {
       defaultValue,
       batch_size = 2
     )
-    // ok 入库成功
-    // 测试获取
 
+    // 测试获取
     val intValue = FeatureDTO.FieldValue.newBuilder().
       setValueType(FeatureDTO.FieldValue.ValueType.INT32).
       setValue(FeatureDTO.Value.newBuilder.setInt32Val(1)).
@@ -67,10 +72,10 @@ class UnitTest {
       "user_common_tdw",
       intValue,
       FeatureTypeEnum.USER)
+
     println(intFieldMeta.get("id1"))
     println(intFieldMeta.get("id2"))
     println(intFieldMeta.get("id3"))
-
   }
 
   @Test
@@ -95,5 +100,9 @@ class UnitTest {
     }
     println(nStep)
   }
-  // scalastyle:on println
+
+
 }
+
+// method longer than 50 lines
+// scalastyle:on

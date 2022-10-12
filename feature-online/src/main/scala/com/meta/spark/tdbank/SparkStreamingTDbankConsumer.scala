@@ -1,4 +1,4 @@
-package com.meta.feature
+package com.meta.spark.tdbank
 
 import com.meta.conn.tdbank.TDbankStreamingContext.fromStreamingContext
 import com.meta.conn.tdbank.{TDBanReceiverConfig}

@@ -1,4 +1,4 @@
-package com.meta.streaming.spark.hbase
+package com.meta.spark.hbase
 
 /**
  * description 

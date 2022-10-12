@@ -1,6 +1,6 @@
 package com.meta.utils
 
-import com.meta.streaming.spark.kafka.KafkaSourceStreaming
+import com.meta.spark.kafka.KafkaSourceStreaming
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.{Duration, StreamingContext}
 

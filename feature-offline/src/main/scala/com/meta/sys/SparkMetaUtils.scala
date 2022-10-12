@@ -13,7 +13,7 @@ import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._ // scalastyle:ignore
 
 /**
- * spark metautils 将hive数据解析为meta元数据并获取到特征序列化值,用户可以使用runSql 方式直接入库注册特征，这是离线特征入库的SDK
+ * spark meta-utils 将hive数据解析为meta元数据并获取到特征序列化值,用户可以使用runSql 方式直接入库注册特征，这是离线特征入库的SDK
  * 用于离线特征平台
  *
  * @author weitaoliang
@@ -93,27 +93,27 @@ object SparkMetaUtils {
               map.valueType match {
                 // StringType IntegerType LongType 默认都转成 StringType
                 case StringType | IntegerType | LongType => {
-                  val mapDefalut = defaultValues.getOrElse(fieldName, Map.empty[String, String])
+                  val mapDefault = defaultValues.getOrElse(fieldName, Map.empty[String, String])
                     .asInstanceOf[Map[String, String]]
-                  val mapDefalutVal = FeatureDTO.FieldValue.newBuilder()
+                  val mapDefaultVal = FeatureDTO.FieldValue.newBuilder()
                     .setValueType(FeatureDTO.FieldValue.ValueType.MAP_STRING_STRING)
                     .setValue(FeatureDTO.Value.newBuilder()
-                      .setMapStringStringVal(MAP_STRING_STRING.newBuilder().putAllVal(mapDefalut)))
+                      .setMapStringStringVal(MAP_STRING_STRING.newBuilder().putAllVal(mapDefault)))
                     .build()
                   new RedisMapStringMeta(jedisClusterName, redisKeyPattern, fieldName, dataSource,
-                    mapDefalutVal, featureType(redisKeyPattern, fieldName))
+                    mapDefaultVal, featureType(redisKeyPattern, fieldName))
                 }
                 //  FloatType DoubleType 默认都转成float
                 case FloatType | DoubleType => {
-                  val mapDefalut = defaultValues.getOrElse(fieldName, Map.empty[String, Float])
+                  val mapDefault = defaultValues.getOrElse(fieldName, Map.empty[String, Float])
                     .asInstanceOf[Map[String, java.lang.Float]].asJava
-                  val mapDefalutVal = FeatureDTO.FieldValue.newBuilder()
+                  val mapDefaultVal = FeatureDTO.FieldValue.newBuilder()
                     .setValueType(FeatureDTO.FieldValue.ValueType.MAP_STRING_FLOAT)
                     .setValue(FeatureDTO.Value.newBuilder()
-                      .setMapStringFloatVal(MAP_STRING_FLOAT.newBuilder().putAllVal(mapDefalut)))
+                      .setMapStringFloatVal(MAP_STRING_FLOAT.newBuilder().putAllVal(mapDefault)))
                     .build()
                   new RedisMapFloatMeta(jedisClusterName, redisKeyPattern, fieldName, dataSource,
-                    mapDefalutVal, featureType(redisKeyPattern, fieldName))
+                    mapDefaultVal, featureType(redisKeyPattern, fieldName))
                 }
               }
             }
@@ -146,7 +146,7 @@ object SparkMetaUtils {
                 }
               }
             }
-            case _ => throw new Exception("unsupport featureType in meta featurePlatForm")
+            case _ => throw new Exception("unsupported featureType in meta featurePlatForm")
           }
           // step2:获取 getFeature,将Row 转化成 FeatureDTO bytes
           val getFeature: Row => Array[Byte] = field.dataType match {

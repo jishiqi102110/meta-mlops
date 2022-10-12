@@ -34,7 +34,7 @@ object Hive2RedisUtils {
    *
    * @Param [spark] sparkSession对象
    * @Param [sql] 用户sql egg: select device_id,age,sex,netType from table_test where xxx,其中sql中必须包含 redisKeyPattern
-   *        里面的填充符（keyplaceHolder）
+   *        里面的填充符（keyPlaceHolder）
    * @Param [jedisClusterName] 封装的特征存储集群
    * @Param [redisKeyPattern] 特征存储key egg:user_commonKey:{device_id}
    * @Param [dataSource] 数据源字符串，用来记录特征血缘,这里就是 table_test
@@ -53,7 +53,7 @@ object Hive2RedisUtils {
             ): Unit = {
 
 
-    // 这里随机构造一个特征主要是利用meta基类方法去拿填充符（keyplaceHolder），从而在dataFrame中去掉这一列
+    // 这里随机构造一个特征主要是利用meta基类方法去拿填充符（keyPlaceHolder），从而在dataFrame中去掉这一列
     val intValue = FeatureDTO.FieldValue.newBuilder()
       .setValueType(FeatureDTO.FieldValue.ValueType.INT32)
       .setValue(FeatureDTO.Value.newBuilder.setInt32Val(0))
@@ -100,9 +100,12 @@ object Hive2RedisUtils {
       featureMetasAndGetFeatureMethods)
     setToRedis(keyAndFields, jedisClusterName, batch_size, redisTTL)
     val endTimeStamp = System.currentTimeMillis()
+    val redisKey = featureMetasAndGetFeatureMethods.head._1.redisKeyPattern
+    val fields = featureMetasAndGetFeatureMethods.map(_._1.redisField).toArray.mkString(",")
 
     logger.info("***********************************************")
-    logger.info("入库时间 : " + (endTimeStamp - startTimeStamp) / 1000 / 60 + " min.")
+    logger.info(s"key:$redisKey fields:$fields 入库时间 : " +
+      (endTimeStamp - startTimeStamp) / 1000 / 60 + " min.")
     logger.info("***********************************************")
     featureMonitor(featureMetasAndGetFeatureMethods)
   }
@@ -170,9 +173,9 @@ object Hive2RedisUtils {
           batchData.map(_.get).foreach {
             case (redisKey, jMap) =>
               if (Random.nextDouble() <= 0.00001) {
-                // scalastyle:off println
-                println("入库redis中,redisKey is " + redisKey + ", ttl is " + redisTTL)
-                // scalastyle:on println
+                logger.info("***********************************************")
+                logger.info("入库redis中,redisKey is " + redisKey + ", ttl is " + redisTTL)
+                logger.info("***********************************************")
               }
               pipeline.hmset(redisKey.getBytes(CHAR_SET_NAME), jMap)
               pipeline.expire(redisKey, redisTTL)

@@ -13,6 +13,7 @@
         <module>feature-offline</module>
         <module>feature-online</module>
         <module>feature-flow</module>
+        <module>feature-web</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

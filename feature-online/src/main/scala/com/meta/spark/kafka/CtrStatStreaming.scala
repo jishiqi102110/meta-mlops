@@ -182,14 +182,11 @@ class CtrStatStreaming(spark: SparkSession,
                           build()
                     }
                     redisCtrMeta.saveField(cateID, ctrMetas)
-
                     redisClickMeta.expire(cateID, redisTTL)
                     redisShowMeta.expire(cateID, redisTTL)
                     redisCtrMeta.expire(cateID, redisTTL)
                   }
               }
-
-
           }
         }
         SparkMonitor.synStreamingMonitor(spark, kafkaSource.groupid, time)

@@ -1,4 +1,4 @@
-package com.meta.spark.monitor
+package com.meta.streaming.spark.monitor
 
 import com.alibaba.fastjson.JSONObject
 import com.meta.conn.redis.{JedisClusterName, JedisConnector}

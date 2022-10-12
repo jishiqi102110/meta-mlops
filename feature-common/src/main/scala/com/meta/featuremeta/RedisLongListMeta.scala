@@ -1,13 +1,12 @@
 package com.meta.featuremeta
 
 import com.meta.conn.redis.JedisClusterName
-import com.meta.entity.{FeatureDTO, SerializeTypeEnum}
 import com.meta.entity.FeatureDTO.FieldValue
 import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
-
+import com.meta.entity.{FeatureDTO, SerializeTypeEnum}
 
 /**
- * 对应的是 [[FeatureDTO.MAP_STRING_FLOAT]] 默认采用proto序列化方式及snappy压缩
+ * 对应的是 [[FeatureDTO.Int64List]],默认采用proto序列化方式及snappy压缩
  *
  * jedisClusterName 存储的集群类
  * redisKeyPattern 特征存储key，一般形式为 常量+{deviceid},{}中为填充符
@@ -15,17 +14,17 @@ import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
  * dataSource 特征数据源，一般填存储离线(twd、hive)、实时(tdbank、kafka)地址
  * defaultVal 特征默认值，用于注册时定义，可以减少默认值入库
  * featureType 特征类型，暂时分为 user、item、cross、scene 用户、物品、交叉、场景特征
- * @author weitaoliang
+ *
+ * @author weitaolian
  * @version V1.0
  * */
 
-class RedisMapFloatMeta(jedisClusterName: JedisClusterName,
+class RedisLongListMeta(jedisClusterName: JedisClusterName,
                         redisKeyPattern: String,
                         redisField: String,
                         dataSource: String,
                         defaultVal: FieldValue,
-                        featureType: FeatureTypeEnum
-                       ) extends RedisFeatureMeta[FeatureDTO.MAP_STRING_FLOAT](
-  jedisClusterName, redisKeyPattern, redisField, dataSource, true, SerializeTypeEnum.PROTO,
-  defaultVal, featureType) with Serializable
-
+                        featureType: FeatureTypeEnum)
+  extends RedisFeatureMeta[FeatureDTO.FloatList](
+    jedisClusterName, redisKeyPattern, redisField, dataSource,
+    true, SerializeTypeEnum.PROTO, defaultVal, featureType) with Serializable

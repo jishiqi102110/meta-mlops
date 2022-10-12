@@ -1,4 +1,4 @@
-package com.meta.spark.kafka
+package com.meta.streaming.spark.kafka
 
 import scala.collection.mutable
 

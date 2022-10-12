@@ -86,7 +86,7 @@ class DataFlowConfigReader extends Serializable {
         val auth = (redisInfoNode \ "auth").text
         val redisType = (redisInfoNode \ "redisType").text
         val redisEnum = if (redisType.equals("redis")) {
-          RedisEnum.REDIS
+          RedisEnum.CACHE_REDIS
         } else {
           RedisEnum.SSD_REDIS
         }

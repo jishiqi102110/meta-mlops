@@ -6,9 +6,10 @@ package com.meta.conn.hbase
  * @author: weitaoliang
  * @version v1.0
  * */
-class HbaseConnectInfo(val name: String, val zookeeperQuorum: String, val zookeeperPort: String
+class HbaseConnectInfo(val name: String, // hbase集群名称
+                       val zookeeperQuorum: String, // hbase zookeeperQuorum 地址
+                       val zookeeperPort: String // hbase port地址
                       ) extends Serializable
-
 // 伴生类
 object HbaseConnectInfo {
   // 测试集群

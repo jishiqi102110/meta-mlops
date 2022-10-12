@@ -1,6 +1,7 @@
-package com.meta.spark.kafka.conn
+package com.meta.conn.kafka
 
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
+
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 
@@ -8,10 +9,17 @@ import scala.collection.JavaConversions._
  * kafka 连接器
  *
  * @author: weitaoliang
+ * @version v1.0
  * */
 
 object KafkaConnector {
 
+  /**
+   * 创建链接方法
+   *
+   * @Param [brokers, params]
+   * @return KafkaProducer[String, String]
+   */
   def newProducer(brokers: String,
                   params: Map[String, String] = Map.empty[String, String])
   : KafkaProducer[String, String] = {

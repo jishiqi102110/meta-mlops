@@ -38,6 +38,7 @@ private[meta] class TDbankStreamingContext(ssc: StreamingContext) {
   }
 }
 
+/** 伴生对象，使用隐式函数，提供优雅便捷的方法调用 */
 private[meta] object TDbankStreamingContext {
   implicit def fromStreamingContext(ssc: StreamingContext): TDbankStreamingContext = {
     new TDbankStreamingContext(ssc)

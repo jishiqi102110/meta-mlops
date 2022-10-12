@@ -1,7 +1,7 @@
 package com.meta.data.conf
 
 import com.meta.conn.hbase.{HbaseConnectInfo, HbaseConnector}
-import com.meta.spark.hbase.HbaseRowKeyUtils
+import com.meta.streaming.spark.hbase.HbaseRowKeyUtils
 import org.apache.hadoop.hbase.client.{Connection, ConnectionConfiguration, ConnectionFactory, Put}
 import org.apache.hadoop
 import org.apache.hadoop.hbase.TableName

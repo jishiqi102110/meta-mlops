@@ -1,4 +1,4 @@
-package com.meta.streaming.spark.kafka
+package com.meta.spark.kafka
 
 import com.meta.conn.kafka.KafkaConnector
 import org.apache.kafka.clients.producer.ProducerRecord

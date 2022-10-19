@@ -1,6 +1,6 @@
-package com.meta.streaming.spark.kafka
+package com.meta.spark.kafka
 
-import com.meta.streaming.spark.monitor.SparkMonitor
+import com.meta.spark.monitor.SparkMonitor
 import org.apache.spark.FutureAction
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession

@@ -1,4 +1,4 @@
-package com.meta.streaming.spark.monitor
+package com.meta.spark.monitor
 
 import com.alibaba.fastjson.JSONObject
 import org.apache.spark.internal.Logging

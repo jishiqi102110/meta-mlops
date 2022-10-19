@@ -1,9 +1,9 @@
-package com.meta.streaming.spark.kafka
+package com.meta.spark.kafka
 
 import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
 import com.meta.featuremeta.RedisFloatMeta
-import com.meta.streaming.spark.monitor.SparkMonitor
+import com.meta.spark.monitor.SparkMonitor
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream //scalastyle:ignore
@@ -178,14 +178,11 @@ class CtrStatStreaming(spark: SparkSession,
                           build()
                     }
                     redisCtrMeta.saveField(cateID, ctrMetas)
-
                     redisClickMeta.expire(cateID, redisTTL)
                     redisShowMeta.expire(cateID, redisTTL)
                     redisCtrMeta.expire(cateID, redisTTL)
                   }
               }
-
-
           }
         }
         SparkMonitor.synStreamingMonitor(spark, kafkaSource.groupid, time)

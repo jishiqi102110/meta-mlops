@@ -1,12 +1,13 @@
 package com.meta.conn.redis
+
+import com.meta.Logging
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.exceptions.JedisConnectionException
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 
 import scala.collection.mutable
 
-object JedisConnector extends Serializable {
-  private val logger = LoggerFactory.getLogger(JedisConnector.getClass)
+object JedisConnector extends Serializable with Logging {
   @transient private lazy val redisMap = new mutable.HashMap[String, JedisPool]()
 
   // redis 默认链接参数，根据业务数据库设置，不能轻易修改redis配置，所以涉及线上操作必须走这个方法
@@ -17,7 +18,7 @@ object JedisConnector extends Serializable {
   private final val NUM_TESTS_PER_EVICTION_RUN = -1
   private final val SLEEP_TIME_LIMIT = 500
   private final val SLEET_TIME = 4
-  private val LOCK = new Object()
+  private final val LOCK = new Object()
 
   /**
    * redis连接器，返回连接池
@@ -68,18 +69,18 @@ object JedisConnector extends Serializable {
             case e: JedisConnectionException
               if e.getCause.toString.contains("ERR max number of clients reached") =>
               if (sleepTime < SLEEP_TIME_LIMIT) sleepTime *= 2
-              logger.info("*************************************")
-              logger.warn(s"redis ${jedisClusterName.host}库目前没有空闲的连接，$sleepTime 毫秒后会重新尝试，" +
+              logWarning("*************************************")
+              logWarning(s"redis ${jedisClusterName.host}库目前没有空闲的连接，$sleepTime 毫秒后会重新尝试，" +
                 s"如果长时间得不到连接，请修改最大连接数的配置")
-              logger.info("*************************************")
+              logWarning("*************************************")
               Thread.sleep(sleepTime)
             case e: Exception => throw e
           }
         }
 
-        logger.info("********************************************")
-        logger.info(s"######初始化$jedisClusterName.host redis连接")
-        logger.info("********************************************")
+        logInfo("********************************************")
+        logInfo(s"######初始化$jedisClusterName.host redis连接")
+        logInfo("********************************************")
       }
     }
     redisMap(jedisClusterName.host).getResource

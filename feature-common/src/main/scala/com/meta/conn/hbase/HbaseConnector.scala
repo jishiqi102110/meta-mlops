@@ -1,5 +1,6 @@
 package com.meta.conn.hbase
 
+import com.meta.Logging
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.slf4j.LoggerFactory
@@ -12,10 +13,11 @@ import scala.collection.mutable
  * @author: weitaoliang
  * @version v1.0
  * */
-object HbaseConnector extends Serializable {
-  private val logger = LoggerFactory.getLogger(HbaseConnector.getClass)
+object HbaseConnector extends Serializable with Logging {
 
   @transient private lazy val connectMap = new mutable.HashMap[String, Connection]()
+
+  private final val LOCK = new Object()
 
   /**
    * apply函数,默认构建连接方式
@@ -27,16 +29,16 @@ object HbaseConnector extends Serializable {
 
     if (!connectMap.contains(hbaseConnectInfo.name)) {
       // 保证线程安全，防止spark多核运行时的连接过多问题
-      HbaseConnector.synchronized {
+      LOCK.synchronized {
         if (!connectMap.contains(hbaseConnectInfo.name)) {
           val configMap = Map(
             ("hbase.zookeeper.property.clientPort", hbaseConnectInfo.zookeeperPort),
             ("hbase.zookeeper.quorum", hbaseConnectInfo.zookeeperQuorum)
           )
           connectMap += hbaseConnectInfo.name -> createConnector(configMap)
-          logger.info("#########################################")
-          logger.info(s"初始化 hbase 连接器 ${hbaseConnectInfo.name}!!!")
-          logger.info("#########################################")
+          logInfo("#########################################")
+          logInfo(s"初始化 hbase 连接器 ${hbaseConnectInfo.name}!!!")
+          logInfo("#########################################")
         }
       }
     }

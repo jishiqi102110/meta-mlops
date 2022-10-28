@@ -1,17 +1,21 @@
 package com.meta.featuremeta
 
 import com.alibaba.fastjson.JSONObject
+import com.meta.Logging
 import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.entity.FeatureDTO.FieldValue
 import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
 import com.meta.entity.SerializeTypeEnum.SerializeTypeEnum
-import com.meta.entity.SerilizeUtils
+import com.meta.entity.{FeatureDTO, SerializeTypeEnum, SerilizeUtils}
+
 import scala.collection.JavaConversions._
 import scala.collection.immutable.Map
 
 /**
  * 特征类基础类，任何类型特征都可以基于此类进行初始化，当然也可以直接使用继承该类的初始化的子类
  *
+ *
+ * 特征抽象按照PB类[[FeatureDTO]]进行存储
  * jedisClusterName 存储的集群类
  * redisKeyPattern 特征存储key，一般形式为 常量+{deviceid},{}中为填充符
  * redisField 特征存储field,如果feild是空，则特征为kv结构，如果不为空则为hash结构，另外如果field中也包含{},里面也包含填充符,则该特征为交叉特征
@@ -25,6 +29,129 @@ import scala.collection.immutable.Map
  * @version V1.0
  * */
 
+
+// 对应的是 [[FeatureDTO.FLOAT]],默认采用bytes序列化方式及不采用压缩
+case class RedisFloatMeta(override val jedisClusterName: JedisClusterName,
+                          override val redisKeyPattern: String,
+                          override val redisField: String,
+                          override val dataSource: String,
+                          override val defaultVal: FieldValue,
+                          override val featureType: FeatureTypeEnum)
+  extends RedisFeatureMeta[FeatureDTO.FLOAT](
+    jedisClusterName, redisKeyPattern, redisField, dataSource, false,
+    SerializeTypeEnum.BYTES, defaultVal, featureType) with Serializable {
+  override def maxAndMin(t: Any): (Double, Double) = (t.asInstanceOf[Float], t.asInstanceOf[Float])
+}
+
+
+// 对应的是 [[FeatureDTO.INT32]] 默认采用bytes序列化方式及不采用压缩
+case class RedisIntMeta(override val jedisClusterName: JedisClusterName,
+                        override val redisKeyPattern: String,
+                        override val redisField: String,
+                        override val dataSource: String,
+                        override val defaultVal: FieldValue,
+                        override val featureType: FeatureTypeEnum
+                       ) extends RedisFeatureMeta[FeatureDTO.INT32](
+  jedisClusterName, redisKeyPattern, redisField, dataSource, false,
+  SerializeTypeEnum.BYTES, defaultVal, featureType) with Serializable {
+
+  // 计算最大值最小值方法用于特征值监控
+  override def maxAndMin(t: Any): (Double, Double) = (t.asInstanceOf[Int], t.asInstanceOf[Int])
+}
+
+// 对应的是 [[FeatureDTO.STRING]],默认采用proto序列化方式算法工程师自行决定是否snappy压缩
+case class RedisStringMeta(override val jedisClusterName: JedisClusterName,
+                           override val redisKeyPattern: String,
+                           override val redisField: String,
+                           override val dataSource: String,
+                           override val isCompress: Boolean,
+                           override val defaultVal: FieldValue,
+                           override val featureType: FeatureTypeEnum)
+  extends RedisFeatureMeta[FeatureDTO.STRING](
+    jedisClusterName, redisKeyPattern, redisField, dataSource, isCompress, SerializeTypeEnum.PROTO,
+    defaultVal, featureType) with Serializable
+
+// 对应的是 [[FeatureDTO.FloatList]],默认采用proto序列化方式及snappy压缩
+case class RedisFloatListMeta(override val jedisClusterName: JedisClusterName,
+                              override val redisKeyPattern: String,
+                              override val redisField: String,
+                              override val dataSource: String,
+                              override val defaultVal: FieldValue,
+                              override val featureType: FeatureTypeEnum)
+  extends RedisFeatureMeta[FeatureDTO.FloatList](
+    jedisClusterName, redisKeyPattern, redisField, dataSource,
+    true, SerializeTypeEnum.PROTO, defaultVal, featureType) with Serializable
+
+// 对应的是 [[FeatureDTO.FloatList]] 默认采用proto序列化方式及snappy压缩
+case class RedisIntListMeta(override val jedisClusterName: JedisClusterName,
+                            override val redisKeyPattern: String,
+                            override val redisField: String,
+                            override val dataSource: String,
+                            override val defaultVal: FieldValue,
+                            override val featureType: FeatureTypeEnum)
+  extends RedisFeatureMeta[FeatureDTO.Int32List](
+    jedisClusterName, redisKeyPattern, redisField, dataSource, true, SerializeTypeEnum.PROTO,
+    defaultVal, featureType) with Serializable
+
+// 对应的是 [[FeatureDTO.Int64List]],默认采用proto序列化方式及snappy压缩
+case class RedisLongListMeta(override val jedisClusterName: JedisClusterName,
+                             override val redisKeyPattern: String,
+                             override val redisField: String,
+                             override val dataSource: String,
+                             override val defaultVal: FieldValue,
+                             override val featureType: FeatureTypeEnum)
+  extends RedisFeatureMeta[FeatureDTO.FloatList](
+    jedisClusterName, redisKeyPattern, redisField, dataSource,
+    true, SerializeTypeEnum.PROTO, defaultVal, featureType) with Serializable
+
+// 对应的是 [[FeatureDTO.MAP_STRING_FLOAT]] 默认采用proto序列化方式及snappy压缩
+case class RedisMapFloatMeta(override val jedisClusterName: JedisClusterName,
+                             override val redisKeyPattern: String,
+                             override val redisField: String,
+                             override val dataSource: String,
+                             override val defaultVal: FieldValue,
+                             override val featureType: FeatureTypeEnum
+                            )
+  extends RedisFeatureMeta[FeatureDTO.MAP_STRING_FLOAT](
+    jedisClusterName, redisKeyPattern, redisField, dataSource, true, SerializeTypeEnum.PROTO,
+    defaultVal, featureType) with Serializable
+
+// 对应的是 [[FeatureDTO.MAP_STRING_FLOAT]]  默认采用proto序列化方式及snappy压缩
+case class RedisMapStringMeta(override val jedisClusterName: JedisClusterName,
+                              override val redisKeyPattern: String,
+                              override val redisField: String,
+                              override val dataSource: String,
+                              override val defaultVal: FieldValue,
+                              override val featureType: FeatureTypeEnum
+                             ) extends RedisFeatureMeta[FeatureDTO.MAP_STRING_STRING](
+  jedisClusterName, redisKeyPattern, redisField, dataSource, true, SerializeTypeEnum.PROTO,
+  defaultVal, featureType) with Serializable
+
+// 对应的是 [[FeatureDTO.SeqList]],默认采用proto序列化方式及snappy压缩
+// 序列特征格式，存储的格式还是为Array[String]，但是格式固定，为针对当前业务专门为序列特征抽象的格式，
+// 格式为timeStamp1:x1    timeStamp2:y1  一个时间戳对应一个序列
+case class RedisSeqListMeta(override val jedisClusterName: JedisClusterName,
+                            override val redisKeyPattern: String,
+                            override val redisField: String,
+                            override val dataSource: String,
+                            override val defaultVal: FieldValue,
+                            override val featureType: FeatureTypeEnum)
+  extends RedisFeatureMeta[FeatureDTO.SeqList](
+    jedisClusterName, redisKeyPattern, redisField, dataSource, true, SerializeTypeEnum.PROTO,
+    defaultVal, featureType) with Serializable
+
+// 对应的是 [[FeatureDTO.StringList]],默认采用proto序列化方式及snappy压缩
+case class RedisStringListMeta(override val jedisClusterName: JedisClusterName,
+                               override val redisKeyPattern: String,
+                               override val redisField: String,
+                               override val dataSource: String,
+                               override val defaultVal: FieldValue,
+                               override val featureType: FeatureTypeEnum)
+  extends RedisFeatureMeta[FeatureDTO.FloatList](
+    jedisClusterName, redisKeyPattern, redisField, dataSource,
+    true, SerializeTypeEnum.PROTO, defaultVal, featureType) with Serializable
+
+// Feature类父类，用户可以定义除了目前已经定义的 10种预定义类型特征，根据自己压缩和序列化方式进行设计
 class RedisFeatureMeta[T](jedisClusterName: JedisClusterName,
                           redisKeyPattern: String,
                           redisField: String,
@@ -35,7 +162,8 @@ class RedisFeatureMeta[T](jedisClusterName: JedisClusterName,
                           featureType: FeatureTypeEnum
                          ) extends RedisFeatureInfo(
   jedisClusterName, redisKeyPattern, redisField, dataSource,
-  isCompress, serializeType, defaultVal, featureType) with Serializable {
+  isCompress, serializeType, defaultVal, featureType)
+  with Serializable with Logging {
 
   // 默认字符编码
   private final val CHART_SET_NAME = "UTF-8"
@@ -153,5 +281,22 @@ class RedisFeatureMeta[T](jedisClusterName: JedisClusterName,
   override def serializeAny(obj: Any): Array[Byte] = serialize(obj.asInstanceOf[FieldValue])
 
   override def deSerializeAny(bytes: Array[Byte]): Any = deserialize(bytes)
-
 }
+
+// 伴生对象
+object RedisFeatureMeta extends Logging {
+  def apply[T](jedisClusterName: JedisClusterName,
+               redisKeyPattern: String,
+               redisField: String,
+               dataSource: String,
+               isCompress: Boolean,
+               serializeType: SerializeTypeEnum,
+               defaultVal: FieldValue,
+               featureType: FeatureTypeEnum): RedisFeatureMeta[T] =
+    new RedisFeatureMeta(jedisClusterName, redisKeyPattern, redisField,
+      dataSource, isCompress, serializeType, defaultVal, featureType)
+}
+
+
+
+

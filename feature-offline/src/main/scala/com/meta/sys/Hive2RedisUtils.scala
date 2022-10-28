@@ -6,8 +6,10 @@ import com.meta.featuremeta.{RedisFeatureInfo, RedisFeatureMeta, RedisIntMeta}
 import org.slf4j.LoggerFactory
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
-
 import java.util
+
+import com.meta.Logging
+
 import scala.collection.mutable
 import scala.util.Random
 import scala.collection.JavaConverters._
@@ -21,9 +23,7 @@ import scala.collection.JavaConversions._ //scalastyle:ignore
  * */
 
 
-object Hive2RedisUtils {
-
-  private val logger = LoggerFactory.getLogger(Hive2RedisUtils.getClass)
+object Hive2RedisUtils extends Logging {
   private final val CHAR_SET_NAME = "UTF-8"
 
   /**
@@ -114,10 +114,10 @@ object Hive2RedisUtils {
     val redisKey = featureMetasAndGetFeatureMethods.head._1.redisKeyPattern
     val fields = featureMetasAndGetFeatureMethods.map(_._1.redisField).toArray.mkString(",")
 
-    logger.info("***********************************************")
-    logger.info(s"key:$redisKey fields:$fields 入库时间 : " +
+    logInfo("***********************************************")
+    logInfo(s"key:$redisKey fields:$fields 入库时间 : " +
       (endTimeStamp - startTimeStamp) / 1000 / 60 + " min.")
-    logger.info("***********************************************")
+    logInfo("***********************************************")
     featureMonitor(featureMetasAndGetFeatureMethods)
   }
 
@@ -202,9 +202,9 @@ object Hive2RedisUtils {
             case (redisKey, jMap) =>
               // 采用随机打印方式查看日志
               if (Random.nextDouble() <= 0.00001) {
-                logger.info("***********************************************")
-                logger.info("入库redis中,redisKey is " + redisKey + ", ttl is " + redisTTL)
-                logger.info("***********************************************")
+                logInfo("***********************************************")
+                logInfo("入库redis中,redisKey is " + redisKey + ", ttl is " + redisTTL)
+                logInfo("***********************************************")
               }
               pipeline.hmset(redisKey.getBytes(CHAR_SET_NAME), jMap)
               pipeline.expire(redisKey, redisTTL)

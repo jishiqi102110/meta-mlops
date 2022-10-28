@@ -1,6 +1,8 @@
 package com.meta.sys
 
 import java.lang
+
+import com.meta.Logging
 import com.meta.conn.redis.JedisClusterName
 import com.meta.entity.FeatureDTO.{FloatList, Int32List, Int64List, MAP_STRING_FLOAT, MAP_STRING_STRING, StringList}
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
@@ -20,7 +22,7 @@ import scala.collection.JavaConversions._ // scalastyle:ignore
  * @version V1.0
  * */
 
-object SparkMetaUtils {
+object SparkMetaUtils extends Logging {
 
 
   // method longer than 50 lines

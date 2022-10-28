@@ -1,5 +1,6 @@
 package com.meta.featuremeta
 
+import com.meta.Logging
 import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.entity.FeatureDTO.FieldValue
 import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
@@ -31,9 +32,8 @@ abstract class RedisFeatureInfo(val jedisClusterName: JedisClusterName,
                                 val isCompress: Boolean,
                                 val serializeType: SerializeTypeEnum,
                                 val defaultVal: FieldValue,
-                                val featureType: FeatureTypeEnum) extends Serializable {
+                                val featureType: FeatureTypeEnum) extends Serializable with Logging {
 
-  private val logger = LoggerFactory.getLogger(RedisFeatureInfo.getClass)
   // 用于描述特征元数据类信息
   protected val generic_type: String
 
@@ -136,9 +136,9 @@ abstract class RedisFeatureInfo(val jedisClusterName: JedisClusterName,
   /** 注册特征接口，注册元数据信息到特征平台 */
   def register(): Unit = {
     // todo 这里去注册redis集群、特征元数据到特征平台
-    logger.info("**********************************************")
-    logger.info(s"register feature $desc")
-    logger.info("**********************************************")
+    logInfo("**********************************************")
+    logInfo(s"register feature $desc")
+    logInfo("**********************************************")
   }
 
   /** 特征toString方法 */
@@ -158,14 +158,26 @@ abstract class RedisFeatureInfo(val jedisClusterName: JedisClusterName,
     }
   }
 }
+
 /** 伴生类 */
 private[meta] object RedisFeatureInfo {
-  //private lazy val simpleHttp =
+
+  def apply(jedisClusterName: JedisClusterName,
+            redisKeyPattern: String,
+            redisField: String,
+            dataSource: String,
+            isCompress: Boolean,
+            serializeType: SerializeTypeEnum,
+            defaultVal: FieldValue,
+            featureType: FeatureTypeEnum): RedisFeatureInfo = ???
+
+  // private lazy val simpleHttp =
 
   /** 特征删除方法实现 */
   private def deleteMeta(): Unit = {
 
   }
+
   /** 特征注册方法实现 */
   private def register(): Unit = {
 

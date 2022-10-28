@@ -1,6 +1,7 @@
 package com.meta.data.pipeline
 
 import com.alibaba.fastjson.JSONObject
+import com.meta.Logging
 import com.meta.conn.hbase.HbaseConnectInfo
 import com.meta.conn.redis.JedisClusterName
 import com.meta.data.conf.{HbaseInfoConfig, RedisFeatureMetaWrapper, TFFeatureConfig, TransformerConf}
@@ -17,7 +18,7 @@ import scala.xml.Elem
  * @version v1.0
  * */
 
-class DataFlowConfigReader extends Serializable {
+class DataFlowConfigReader extends Serializable with Logging {
   // 配置文件中的集群配置
   private var _redisNames: Map[String, JedisClusterName] = _
   // 配置文件中的meta信息

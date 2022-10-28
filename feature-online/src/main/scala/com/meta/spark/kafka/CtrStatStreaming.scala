@@ -1,5 +1,6 @@
 package com.meta.spark.kafka
 
+import com.meta.Logging
 import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
 import com.meta.featuremeta.RedisFloatMeta
@@ -20,7 +21,7 @@ class CtrStatStreaming(spark: SparkSession,
                        alpha: Float = 0.9999f,
                        defaultShow: Float = 2000f,
                        defaultClick: Float = 10f,
-                       defaultCtr: Float = 0.0f) extends Serializable {
+                       defaultCtr: Float = 0.0f) extends Serializable with Logging {
   private var fisrtBatch = true
   private val redisCtrMetasMap = collection.mutable.Map.empty[(String, String), RedisFloatMeta]
   private val redisShowMetasMap = collection.mutable.Map.empty[(String, String), RedisFloatMeta]

@@ -1,6 +1,4 @@
 package com.meta.conn.redis
-
-
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.exceptions.JedisConnectionException
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
@@ -19,6 +17,7 @@ object JedisConnector extends Serializable {
   private final val NUM_TESTS_PER_EVICTION_RUN = -1
   private final val SLEEP_TIME_LIMIT = 500
   private final val SLEET_TIME = 4
+  private val LOCK = new Object()
 
   /**
    * redis连接器，返回连接池
@@ -50,7 +49,7 @@ object JedisConnector extends Serializable {
   def apply(jedisClusterName: JedisClusterName): Jedis = {
 
     if (!redisMap.contains(jedisClusterName.host)) {
-      JedisConnector.synchronized {
+      LOCK.synchronized {
         redisMap += jedisClusterName.host -> getConnector(
           jedisClusterName.host,
           jedisClusterName.port,
@@ -75,7 +74,6 @@ object JedisConnector extends Serializable {
               logger.info("*************************************")
               Thread.sleep(sleepTime)
             case e: Exception => throw e
-
           }
         }
 

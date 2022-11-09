@@ -21,7 +21,7 @@ object MLUtils {
    * @Param [x, scale]
    * @return
    */
-  def log1p(x: Double, scale: Int = 1): Double = {
+  def log1p(x: Double, scale: String = "1"): Double = {
     if (x == 0.0) 0.0 else (if (x >= 0) 1 else -1) * Math.log(Math.abs(x) / scale.toDouble + 1.0)
   }
 
@@ -137,8 +137,21 @@ object MLUtils {
     }
     bucketValue
   }
-
-
   // scalastyle:on
+
+  def normalization(): Unit = {}
+
+  def isHoliday(): Unit = {}
+
+  def hourScope(): Unit = {}
+
+  def nextDayIsHoliday(): Unit = {}
+
+  def weekOfDay(): Unit = {}
+
+  def sparse(): Unit = {}
+
+  def hash(): Unit = {}
+
 }
 

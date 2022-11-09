@@ -52,8 +52,6 @@ class testDataFlowConfigReader extends Logging {
     val log1p = ReflectUtils.reflectMethodInvoke(
       "com.meta.data.utils.MLUtils", "log1p", Array(3.0D, 1))
     logInfo(log1p.toString)
-
-    def func = (x: Double, scale: Int) => MLUtils.log1p(x, scale = 1)
   }
 
   def testMethodWrapper(): Unit = {

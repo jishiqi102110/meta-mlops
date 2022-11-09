@@ -1,5 +1,8 @@
 package com.meta.data.conf
 
+import com.meta.data.utils.MLUtils
+import com.sun.org.apache.xml.internal.security.utils.XMLUtils
+
 /**
  * description 
  *
@@ -7,17 +10,27 @@ package com.meta.data.conf
  * @version v1.0
  * */
 class TransformerConf(val method: String,
-                      val featureName: String,
+                      val redisKeyPattern: String,
+                      val redisField: String,
                       val featureParams: Array[String],
                       val ConstantParams: Array[String],
                       val transformedName: String
                      ) extends Serializable {
 
+
   private val _featureMethods: Map[String, MethodWrapper] = Map(
-    "cos" -> new MethodWrapper("cros", null, alias = "1"),
-    "log1p" -> new MethodWrapper("log1p", null, alias = "2"),
+    "cos" -> new MethodWrapper(
+      "cros",
+      (x: Double) => MLUtils.cos(x),
+      alias = "1"),
+    "log1p" -> new MethodWrapper(
+      "log1p",
+      (x: Double, scale: String) => MLUtils.log1p(x, scale = scale.toInt),
+      alias = "2"),
     "normalization" -> new MethodWrapper("normlization", null, "3"),
-    "netTypeEncode" -> new MethodWrapper("netTypeEncode", null, alias = "4"),
+    "netTypeEncode" -> new MethodWrapper("netTypeEncode",
+      (netType: String) => MLUtils.netTypeEncode(netType),
+      alias = "4"),
     "isHoliday" -> new MethodWrapper("isHoliday", null, "5"),
     "hourScope" -> new MethodWrapper("hourScope", null, "6"),
     "nextDayisHoliday" -> new MethodWrapper("nextDayisHoliday", null, "7"),

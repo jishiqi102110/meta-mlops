@@ -1,11 +1,13 @@
 package com.meta.data.conf
 
 /**
- * 特征处理方法包装类
+ * 特征处理方法包装类，这里只包装了9个参数长度的方法，一般可以覆盖所有算法业务逻辑
  *
  * @author: weitaoliang
  * @version v1.0
  * */
+// 方法复杂度超了10,业务需要屏蔽相关语法提醒
+// scalastyle:off
 class MethodWrapper(name: String,
                     f: AnyRef,
                     val alias: String) extends Serializable {

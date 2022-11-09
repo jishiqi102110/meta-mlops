@@ -55,6 +55,7 @@ class DataFlowConfigReader extends Serializable with Logging {
           val sortedKey = sortedArray.map(_.featureName).toSet union Set.empty[String]
           // 特征获取没有前置特征获取需求的放在sortedArray中
           if (!featureNameSet.contains(feature.featureInfo.keyPlaceHolder.get)
+            && !feature.featureInfo.fieldPlaceHolder.isEmpty
             && !featureNameSet.contains(feature.featureInfo.fieldPlaceHolder.get)) {
             true
           } else if (sortedKey.contains(feature.featureInfo.keyPlaceHolder.get)
@@ -78,9 +79,30 @@ class DataFlowConfigReader extends Serializable with Logging {
 
   // 从xml文件中加载配置
   private def loadFromXml(elem: Elem): Unit = {
+    // 1.提取xml文件redis 相关配置
+    loadXMlRedisNames(elem)
+    // 2.提取xml meta相关配置
+    loadXMlFeatureMetas(elem)
+    // 3.进行排序
+    // _featureMetas = sortFeatureMeta(_featureMetas)
+    // 4.提取xml hbase相关配置
+    loadXMLHbaseConfig(elem)
+    // 5.提取转化操作
+    loadXMLTransformers(elem)
+    // 6.提取剔除特征配置
+    loadXMLExcludes(elem)
+  }
+
+  /**
+   * 加载redis配置方法
+   *
+   * @Param [elem]
+   * @return
+   */
+  private def loadXMlRedisNames(elem: Elem): Unit = {
+
     _redisNames = (elem \ "redisInfos" \ "redisInfo").map {
       redisInfoNode =>
-        // 1.提取xml文件redis 相关配置
         val redisName = (redisInfoNode \ "redisName").text
         val redisAddress = (redisInfoNode \ "redisAddress").text
         val port = (redisInfoNode \ "port").text
@@ -91,13 +113,21 @@ class DataFlowConfigReader extends Serializable with Logging {
         } else {
           RedisEnum.SSD_REDIS
         }
-
         val timeOut = (redisInfoNode \ "timeOut").text
         (redisName, new JedisClusterName(redisName, redisAddress, port.toInt, auth = auth,
           timeout = timeOut.toInt, redisType = redisEnum))
     }.toMap
+  }
 
-    // 2.提取xml meta相关配置
+  // scalastyle:off
+
+  /**
+   * 加载特征元数据配置方法
+   *
+   * @Param [elem]
+   * @return
+   */
+  private def loadXMlFeatureMetas(elem: Elem): Unit = {
     _featureMetas = (elem \ "featureMetas" \ "featureMeta").map {
       featureMetaNode =>
         // 提取xml文件featureMeta相关配置
@@ -125,7 +155,6 @@ class DataFlowConfigReader extends Serializable with Logging {
               .build()
             new RedisIntMeta(_redisNames(redisName), redisKeyPattern, redisField,
               dataSource, floatDefaultVal, featureType)
-
           case "RedisIntMeta" =>
             val intDefaultVal = FeatureDTO.FieldValue.newBuilder()
               .setValueType(FeatureDTO.FieldValue.ValueType.INT32)
@@ -150,42 +179,64 @@ class DataFlowConfigReader extends Serializable with Logging {
         }
         new RedisFeatureMetaWrapper(redisField, feaureMeta, isCache)
     }.toArray
-    // 3.进行排序
-    _featureMetas = sortFeatureMeta(_featureMetas)
-    // 提取xml hbase相关配置
+  }
 
-    _hbaseConfig = {
-      val clusterName = (elem \ "hbaseInfo" \ "clusterName").text
-      val zookeeperQuorum = (elem \ "hbaseInfo" \ "zookeeperQuorum").text
-      val port = (elem \ "hbaseInfo" \ "port").text
-      val tableName = (elem \ "hbaseInfo" \ "tableName").text
-      val ttl = (elem \ "hbaseInfo" \ "ttl").text
-      new HbaseInfoConfig(new HbaseConnectInfo(clusterName, zookeeperQuorum, port),
-        tableName, ttl.toLong)
+  // scalastyle:on
+
+
+  /**
+   * 加载hbase配置方法
+   *
+   * @Param [elem]
+   * @return
+   */
+  private def loadXMLHbaseConfig(elem: Elem): Unit = {
+    val hbaseNode = (elem \ "hbaseInfo")
+    if (!hbaseNode.isEmpty) {
+      _hbaseConfig = {
+        val clusterName = (hbaseNode \ "clusterName").text
+        val zookeeperQuorum = (hbaseNode \ "zookeeperQuorum").text
+        val port = (hbaseNode \ "port").text
+        val tableName = (hbaseNode \ "tableName").text
+        val ttl = (hbaseNode \ "ttl").text
+        new HbaseInfoConfig(new HbaseConnectInfo(clusterName, zookeeperQuorum, port),
+          tableName, ttl.toLong)
+      }
     }
-    // 4.提取转化操作
-    _transformers = (elem \ "transformers" \ "transformer").map {
-      transformer =>
-        // 提取方法
-        val method = (transformer \ "operator").text
-        // 提取参数
-        val params = (transformer \ "params" \ "param").map(_.text).toArray
-        // 提取常量参数
-        val constantParams = (transformer \ "params" \ "constantParam").map(_.text).toArray
-        // 提取需要处理的特征id
-        val featureName = (transformer \ "featureName").text
-        val transformedFeatureName = (transformer \ "transformedFeatureName").text
-        new TransformerConf(method, featureName, params, constantParams, transformedFeatureName)
-    }.toArray
+  }
 
-    // 5.提取剔除特征配置
+  /**
+   * 加载hbase配置方法
+   *
+   * @Param [elem]
+   * @return
+   */
+  private def loadXMLTransformers(elem: Elem): Unit = {
+    val transformersNode = (elem \ "transformers")
+    if (!transformersNode.isEmpty) {
+      _transformers = (elem \ "transformers" \ "transformer").map {
+        transformer =>
+          // 提取方法
+          val method = (transformer \ "operator").text
+          // 提取参数
+          val params = (transformer \ "params" \ "param").map(_.text).toArray
+          // 提取常量参数
+          val constantParams = (transformer \ "constantParams" \ "constantParam").map(_.text).toArray
+          // 提取需要处理的特征id
+          val redisKeyPattern = (transformer \ "redisKeyPattern").text
+          val redisField = (transformer \ "redisField").text
+          val transformedFeatureName = (transformer \ "transformedFeatureName").text
+          new TransformerConf(method, redisKeyPattern, redisField,
+            params, constantParams, transformedFeatureName)
+      }.toArray
+    }
+  }
+
+  private def loadXMLExcludes(elem: Elem): Unit = {
     _excludes = (elem \ "execludes" \ "execlude").map {
       execlude =>
         (execlude \ "featureName").text
     }.toArray
-    // todo
-    // 6.获取hbase配置
-    // 7.获取tfrecord配置
   }
 
   // 从resource目录下读取
@@ -202,6 +253,7 @@ class DataFlowConfigReader extends Serializable with Logging {
     loadFromXml(elem)
     this
   }
+
 
   def featureMetas: Array[RedisFeatureMetaWrapper] = _featureMetas
 

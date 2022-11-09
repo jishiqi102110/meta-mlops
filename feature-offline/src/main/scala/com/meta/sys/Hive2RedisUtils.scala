@@ -50,7 +50,6 @@ object Hive2RedisUtils extends Logging {
              redisTTL: Int = 60 * 24 * 60 * 60
             ): Unit = {
 
-
     // 这里随机构造一个特征主要是利用meta基类方法去拿填充符（keyPlaceHolder），从而在dataFrame中去掉这一列
     val intValue = FeatureDTO.FieldValue.newBuilder()
       .setValueType(FeatureDTO.FieldValue.ValueType.INT32)
@@ -114,10 +113,8 @@ object Hive2RedisUtils extends Logging {
     val redisKey = featureMetasAndGetFeatureMethods.head._1.redisKeyPattern
     val fields = featureMetasAndGetFeatureMethods.map(_._1.redisField).toArray.mkString(",")
 
-    logInfo("***********************************************")
     logInfo(s"key:$redisKey fields:$fields 入库时间 : " +
       (endTimeStamp - startTimeStamp) / 1000 / 60 + " min.")
-    logInfo("***********************************************")
     featureMonitor(featureMetasAndGetFeatureMethods)
   }
 
@@ -202,9 +199,7 @@ object Hive2RedisUtils extends Logging {
             case (redisKey, jMap) =>
               // 采用随机打印方式查看日志
               if (Random.nextDouble() <= 0.00001) {
-                logInfo("***********************************************")
                 logInfo("入库redis中,redisKey is " + redisKey + ", ttl is " + redisTTL)
-                logInfo("***********************************************")
               }
               pipeline.hmset(redisKey.getBytes(CHAR_SET_NAME), jMap)
               pipeline.expire(redisKey, redisTTL)

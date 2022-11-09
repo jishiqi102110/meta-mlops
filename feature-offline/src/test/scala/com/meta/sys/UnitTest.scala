@@ -1,5 +1,6 @@
 package com.meta.sys
 
+import com.meta.utils.MLUtils
 import com.meta.conn.redis.JedisClusterName
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
 import com.meta.featuremeta.RedisIntMeta
@@ -15,19 +16,13 @@ import org.junit.Test
 class UnitTest {
 
 
-
   // method longer than 50 lines
   // scalastyle:off
   @Test
   def testRunSql(): Unit = {
     // 这里必须加个bin 目录，不加会报找不到utils,这里设置后就不用去设置hadoop环境变量了
-    System.setProperty("HADOOP_HOME", "D:\\bin\\winutils.exe")
-
-    val spark = SparkSession
-      .builder()
-      .appName("localTest")
-      .master("local")
-      .getOrCreate()
+    val hadoopDir = "D:\\bin\\winutils.exe"
+    val spark = MLUtils.getLocalSparkSession("testLocal", hadoopDir)
     import spark.implicits._
 
     val arr = Array(("id1", 2, "f1"), ("id2", 1, "f2"), ("id3", 3, "f3"))

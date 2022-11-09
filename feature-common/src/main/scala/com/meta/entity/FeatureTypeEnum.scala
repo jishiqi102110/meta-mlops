@@ -1,5 +1,13 @@
 package com.meta.entity
 
+/**
+ * 特征类型枚举类
+ *
+ * “SCENE” 、“USER”、“ITEM”、“CROSS” 是对四种特征类型的定义
+ *
+ * @author weitaoliang
+ * @version V1.0
+ * */
 object FeatureTypeEnum extends Enumeration {
   type FeatureTypeEnum = Value
 

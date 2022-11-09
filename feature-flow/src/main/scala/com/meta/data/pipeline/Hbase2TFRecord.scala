@@ -1,7 +1,7 @@
 package com.meta.data.pipeline
 
 /**
- * description 
+ * description
  *
  * @author: weitaoliang
  * @version v1.0

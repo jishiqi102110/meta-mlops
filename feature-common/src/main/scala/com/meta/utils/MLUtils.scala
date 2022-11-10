@@ -6,10 +6,11 @@ import org.apache.spark.sql.SparkSession
  * 机器学习工具类
  *
  * @author weitaoliang
- * @version V1.0 
+ * @version V1.0
  */
 object MLUtils {
 
+  // 获取sparkSession
   def getSparkSession(appName: String): SparkSession = {
     implicit val spark: SparkSession = SparkSession
       .builder
@@ -18,6 +19,7 @@ object MLUtils {
     spark
   }
 
+  // 获取本地SparkSession,用于本地调试，注意这里仅适用于windows
   def getLocalSparkSession(appName: String, hadoopDir: String): SparkSession = {
     System.setProperty("HADOOP_HOME", hadoopDir)
     val spark = SparkSession

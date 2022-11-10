@@ -9,6 +9,11 @@ import scala.collection.mutable
 /**
  * 数据流操作主类，主要用来离线根据特征配置文件来获取特征
  *
+ * <p>任何形式的特征获取、计算都可以使用此类进行使用，通过配置话的形式解决推荐算法数据流中特征从特征平台获取、处理、入库hbase形成样本的流程
+ * 通过配置文件的形式解决推荐算法中经典的''线上线下''一致性处理问题
+ * <p>此类中有一个优化点：如果配置文件配置了此特征需要缓存，这里还进行了item特征的获取优化，一次召回需要的item在获取的时候会存在重复查询
+ * 因为一次访问对应的是1->n 的问题,这时候如果不进行item特征进行缓存，我们的特征获取服务就会存在重复读取的问题，对底层特征服务压力就很大，
+ * 所以这里进行item特征进行缓存来优化读取防止redis存在热点问题
  * @author: weitaoliang
  * @version v1.0
  * */
@@ -29,7 +34,7 @@ class DataFlowDriver(val conf: DataFlowConfigReader) extends Serializable {
   def featureCollector(inputMap: mutable.HashMap[String, Any], json: JSONObject,
                        bufferMap: mutable.HashMap[String, Any]): Unit = {
     // 记录特征获取开始时间
-    json.put("coolect_feature_start_timeStamp", System.currentTimeMillis())
+    json.put("collect_feature_start_timeStamp", System.currentTimeMillis())
     // 1.根据配置文件获取特征
     for (featureMeta <- conf.featureMetas) {
       val keyPlaceHolder = featureMeta.featureInfo.keyPlaceHolder
@@ -63,25 +68,42 @@ class DataFlowDriver(val conf: DataFlowConfigReader) extends Serializable {
               asInstanceOf[FieldValue]))
         }
       } else {
-        throw new Exception(s"feature collect execption ${featureMeta.featureName}!!!")
+        throw new Exception(s"feature collect exception ${featureMeta.featureName}!!!")
       }
     }
     // 2.根据配置文件进行特征转化
+    featureTransform(inputMap, json)
+    // 3.根据配置文件进行特征剔除
+    excludeFeature(json)
+    // 获取特征获取结束时间
+    json.put("coolect_feature_end_timeStamp", System.currentTimeMillis())
+  }
+
+
+  // 特征转换处理
+  private def featureTransform(
+                                inputMap: mutable.HashMap[String, Any],
+                                json: JSONObject
+                              ): Unit = {
     for (transformer <- conf.transformers) {
-      //获取inputMap中特征处理需要的参数，最后合并参数，送给特征处理函数
+      // 获取inputMap中特征处理需要的参数，最后合并参数，送给特征处理函数
       val params = transformer.featureParams.map(f =>
         (f, getJsonOrEleseMap(f, json, inputMap))).toMap
       // 转化后的特征名放入json中
       json.put(transformer.transformedName, transformer.eval(params))
     }
-    // 3.根据配置文件进行特征剔除
+  }
+
+  // 特征删除处理
+  private def excludeFeature(json: JSONObject): Unit = {
     for (exclude <- conf.excludes) {
       json.remove(exclude)
     }
-    // 获取特征获取结束时间
-    json.put("coolect_feature_end_timeStamp", System.currentTimeMillis())
   }
+
+
 }
+
 
 object DataFlowDriver {
   def apply(conf: DataFlowConfigReader): DataFlowDriver = new DataFlowDriver(conf)

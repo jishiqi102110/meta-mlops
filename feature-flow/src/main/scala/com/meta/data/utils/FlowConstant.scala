@@ -1,10 +1,10 @@
 package com.meta.data.utils
 
 /**
+ * flow 常量类
  *
- *
- * @author weitaoliang 
- * @version V1.0 
+ * @author weitaoliang
+ * @version V1.0
  */
 object FlowConstant {
 
@@ -17,4 +17,7 @@ object FlowConstant {
   val NET_WORK_TYPE_6 = "13-1-6"
   val NET_WORK_TYPE_7 = "13-1-7"
   val NET_WORK_TYPE_8 = "13-1-8"
+
+  // Hbase
+  val HBASE_PRE_PARTITION_NUM = 1000
 }

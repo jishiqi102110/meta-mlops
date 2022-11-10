@@ -2,14 +2,15 @@ package com.meta.data.conf
 
 import com.meta.conn.hbase.{HbaseConnectInfo, HbaseConnector}
 import com.meta.spark.hbase.HbaseRowKeyUtils
-import org.apache.hadoop.hbase.client.{Connection, ConnectionConfiguration, ConnectionFactory, Put}
-import org.apache.hadoop
+import com.meta.data.utils.FlowConstant
+
+import org.apache.hadoop.hbase.client.{Put}
 import org.apache.hadoop.hbase.TableName
 
 import scala.collection.JavaConversions._
 
 /**
- * description 
+ * description
  *
  * @author: weitaoliang
  * @version v1.0
@@ -17,7 +18,8 @@ import scala.collection.JavaConversions._
 class HbaseInfoConfig(val hbaseConnectInfo: HbaseConnectInfo,
                       val tableName: String,
                       val ttl: Long,
-                      var partitionNum: Int = 1000) extends Serializable {
+                      var partitionNum: Int = FlowConstant.HBASE_PRE_PARTITION_NUM)
+  extends Serializable {
   // 获取rowKey
   def getRowKey(reqID: String, reqTimeStamp: Long): String = {
     HbaseRowKeyUtils.getKey(reqID, reqTimeStamp, ttl, partitionNum)

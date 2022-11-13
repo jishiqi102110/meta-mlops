@@ -6,6 +6,4 @@ package com.meta.data.pipeline
  * @author: weitaoliang
  * @version v1.0
  * */
-object Hbase2TFRecord {
-
-}
+object Hbase2TFRecord

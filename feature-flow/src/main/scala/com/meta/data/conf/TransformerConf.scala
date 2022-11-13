@@ -14,9 +14,7 @@ class TransformerConf(val method: String,
                       val redisField: String,
                       val featureParams: Array[String],
                       val ConstantParams: Array[String],
-                      val transformedName: String
-                     ) extends Serializable {
-
+                      val transformedName: String) extends Serializable {
 
   // 预定义初始化方法
   private val _featureMethods: Map[String, MethodWrapper] = Map(

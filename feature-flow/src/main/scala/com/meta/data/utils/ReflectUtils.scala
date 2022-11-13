@@ -10,8 +10,8 @@ import scala.reflect.runtime.universe
 /**
  *
  *
- * @author weitaoliang 
- * @version V1.0 
+ * @author weitaoliang
+ * @version V1.0
  */
 object ReflectUtils {
   // scala Object 调用方法

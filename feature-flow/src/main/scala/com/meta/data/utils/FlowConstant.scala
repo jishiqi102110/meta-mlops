@@ -20,4 +20,8 @@ object FlowConstant {
 
   // Hbase
   val HBASE_PRE_PARTITION_NUM = 1000
+  val HBASE_BUFFER_TIME_OUT = 10 * 60
+  val HBASE_REQUEST_ID_NAME = "requestID"
+  val HBASE_REQUEST_TIMESTAMP_NAME = "requestTimeStamp"
+
 }

@@ -24,19 +24,22 @@ object SparkMonitor {
 
   private var _yarnTrackingUrl: String = _
 
+  val json = new JSONObject()
+
   def getYarnTrackingUrl(spark: SparkSession): String = {
     if (_yarnTrackingUrl == null) {
       val rmids = spark.sparkContext.hadoopConfiguration.get("yarn.resourcemanager.ha.rm-ids")
-      val applicationID = spark.sparkContext.applicationId
       val conf = if (rmids != null) {
         val address = spark.sparkContext.hadoopConfiguration.
           get(s"yarn.resourcemanager.webapp.address.${rmids.split(",").head}")
         s"http://$address/conf"
+        Some(address)
       } else {
-        null
+        None
       }
+
       // 这里执行系统命令
-      val curResult = s"curl ${conf}".!!
+      val curResult = s"curl ${conf.get}".!!
       // 每个公司可能获取spark任务链接地址的方式不一样
       _yarnTrackingUrl = curResult.toString
     }
@@ -50,35 +53,39 @@ object SparkMonitor {
                              futureActions: ArrayBuffer[FutureAction[T]]
                             ): Unit = {
     futureActions --= futureActions.filter(_.isCompleted)
-    val json = new JSONObject()
+
+    // fill common info
+    fillSparkConmmonInfo(spark)
+
+    json.put("uncompleted_num", futureActions.size)
+    json.put("timeStamp", System.currentTimeMillis())
+    json.put("groupId", groupID)
+    monitorJedis.hset("asy_streaming_monitor",
+      spark.sparkContext.applicationId + "|" + spark.sparkContext.appName, json.toJSONString)
+  }
+
+  private def fillSparkConmmonInfo(spark: SparkSession): Unit = {
     val appName = spark.sparkContext.appName
     val application_id = spark.sparkContext.applicationId
     json.put("tracking_url", getYarnTrackingUrl(spark))
     json.put("application_id", application_id)
-    json.put("uncompleted_num", futureActions.size)
     json.put("app_name", appName)
     json.put("user", spark.sparkContext.sparkUser)
-    json.put("timeStamp", System.currentTimeMillis())
-    json.put("groupid", groupID)
-    monitorJedis.hset("asyn_streaming_monitor", application_id + "|" + appName, json.toJSONString)
+
   }
 
   def synStreamingMonitor(spark: SparkSession,
                           groupID: String,
                           time: Time
                          ): Unit = {
-    val json = new JSONObject()
-    val appName = spark.sparkContext.appName
-    val application_id = spark.sparkContext.applicationId
-    json.put("tracking_url", getYarnTrackingUrl(spark))
-    json.put("application_id", application_id)
+    // fill common info
+    fillSparkConmmonInfo(spark)
     // 可以看到任务堆积多久
     json.put("batch_time", time.milliseconds)
-    json.put("app_name", appName)
-    json.put("user", spark.sparkContext.sparkUser)
     json.put("timeStamp", System.currentTimeMillis())
-    json.put("groupid", groupID)
-    monitorJedis.hset("syn_streaming_monitor", application_id + "|" + appName, json.toJSONString)
+    json.put("groupId", groupID)
+    monitorJedis.hset("syn_streaming_monitor",
+      spark.sparkContext.applicationId + "|" + spark.sparkContext.appName, json.toJSONString)
   }
 
   // 用于监控离线任务执行时长
@@ -92,19 +99,17 @@ object SparkMonitor {
       case _ => 0
     }
     val endTimeStamp = System.currentTimeMillis()
-    val json = new JSONObject()
-    val appName = spark.sparkContext.appName
-    val application_id = spark.sparkContext.applicationId
-    json.put("tracking_url", getYarnTrackingUrl(spark))
-    json.put("application_id", application_id)
+
+    // fill common info
+    fillSparkConmmonInfo(spark)
+
     // 更新数量
     json.put("num", num)
-    json.put("app_name", appName)
-    json.put("user", spark.sparkContext.sparkUser)
     json.put("startTimeStamp", startTimeStamp)
     json.put("endTimeStamp", endTimeStamp)
 
-    monitorJedis.hset("runningTimeMonitor", application_id + "|" + appName, json.toJSONString)
+    monitorJedis.hset("runningTimeMonitor",
+      spark.sparkContext.applicationId + "|" + spark.sparkContext.appName, json.toJSONString)
   }
 
   // 离线特征入库往往是一批特征对应一个任务，所以这的信息也进行一下整合
@@ -115,14 +120,9 @@ object SparkMonitor {
                                   updateNums: Array[Int],
                                   maxValues: Array[Double],
                                   minValues: Array[Double]): Unit = {
-    val json = new JSONObject()
-    val appName = spark.sparkContext.appName
-    val application_id = spark.sparkContext.applicationId
-    json.put("tracking_url", getYarnTrackingUrl(spark))
-    json.put("application_id", application_id)
-    // 更新数量
-    json.put("app_name", appName)
-    json.put("user", spark.sparkContext.sparkUser)
+    // fill common info
+    fillSparkConmmonInfo(spark)
+
     json.put("startTimeStamp", startTimeStamp)
     json.put("endTimeStamp", endTimeStamp)
 
@@ -144,7 +144,7 @@ object SparkMonitor {
     json.put("metaArray", jsonArray)
 
     monitorJedis.hset("offline_feature_update_monitor",
-      application_id + "|" + appName, json.toJSONString)
+      spark.sparkContext.applicationId + "|" + spark.sparkContext.appName, json.toJSONString)
   }
 
 }

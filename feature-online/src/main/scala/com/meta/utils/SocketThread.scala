@@ -8,5 +8,5 @@ package com.meta.utils
  * */
 class SocketThread(inputPath: Array[String],
                    port: Int) extends Runnable {
-  override def run(): Unit = ???
+  override def run(): Unit = {}
 }

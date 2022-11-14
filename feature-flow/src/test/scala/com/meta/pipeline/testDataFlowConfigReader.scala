@@ -12,16 +12,18 @@ import scala.reflect.runtime.universe
 /**
  * testDataFlowConfigReader 测试类
  *
- * @author weitaoliang 
- * @version V1.0 
+ * @author weitaoliang
+ * @version V1.0
  */
 class testDataFlowConfigReader extends Logging {
 
   @Test
   def testFlowDriver(): Unit = {
+
     // 这里用来测试读取配置文件流程，列举了如何进行配置特征、特征处理、特征删除相关配置,其中特征选取了我们在
     // feature-common 测试特征注册流程注册的特征 [[FeatureMetaUnitTest]]，用到这里的配置文件中，来模拟
     // 一次用户请求，用户传入上下文信息，然后根据注册特征、特征处理等配置即可进行特征获取流程
+
     val xmlFile = "featureflow.xml"
     val reader = DataFlowConfigReader.loadFromResources(xmlFile)
     logInfo(DataFlowConfigReader.toString)
@@ -53,10 +55,5 @@ class testDataFlowConfigReader extends Logging {
       "com.meta.data.utils.MLUtils", "log1p", Array(3.0D, 1))
     logInfo(log1p.toString)
   }
-
-  def testMethodWrapper(): Unit = {
-
-  }
-
 
 }

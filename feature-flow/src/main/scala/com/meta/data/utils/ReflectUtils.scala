@@ -24,7 +24,6 @@ object ReflectUtils {
     // ObjectMirror can be used to reflect the members of the object
     val objectMirror = classMirror.reflect(moduleMirror.instance)
     val method = moduleMirror.symbol.typeSignature.member(universe.TermName(methodName)).asMethod
-
     objectMirror.reflectMethod(method)(parameters: _*)
   }
 }

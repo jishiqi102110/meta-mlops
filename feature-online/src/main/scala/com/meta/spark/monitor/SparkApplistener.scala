@@ -53,7 +53,7 @@ class SparkApplistener(spark: SparkSession) extends SparkListener with Logging w
       message.put("user", user)
       message.put("taskError", errorMessage.get)
 
-      //这里可做一个定时器，然后出现任务失败时，触发自定义条件告警
+      // 这里可做一个定时器，然后出现任务失败时，触发自定义条件告警
     }
   }
 

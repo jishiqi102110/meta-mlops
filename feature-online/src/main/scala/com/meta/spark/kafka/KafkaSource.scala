@@ -6,6 +6,4 @@ package com.meta.spark.kafka
  * @author: weitaoliang
  * @version v1.0
  * */
-class KafkaSource {
-
-}
+class KafkaSource

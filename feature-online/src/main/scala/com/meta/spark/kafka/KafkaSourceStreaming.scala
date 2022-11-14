@@ -20,7 +20,7 @@ class KafkaSourceStreaming(val brokers: String,
                            val topics: String,
                            val groupid: String,
                            val batchDuration: Duration,
-                           val consumerParamers: Map[String, String] = Map.empty[String, String],
+                           val consumerParameters: Map[String, String] = Map.empty[String, String],
                            val jedisName: Option[JedisClusterName] = None
                           ) extends Serializable {
 
@@ -33,7 +33,7 @@ class KafkaSourceStreaming(val brokers: String,
     val jedis = if (jedisName.isEmpty) None else Some(JedisConnector(jedisName.get))
     val dsTreams = (brokers.split(";") zip topics.split(";")).map {
       case (broker, topic) =>
-        StreamingUtils.getKafkaStream(topic, broker, groupid, jedis, ssc, consumerParamers)
+        StreamingUtils.getKafkaStream(topic, broker, groupid, jedis, ssc, consumerParameters)
     }
     ssc.union(dsTreams)
   }

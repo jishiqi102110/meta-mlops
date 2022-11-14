@@ -232,6 +232,7 @@ class DataFlowConfigReader extends Serializable with Logging {
     }
   }
 
+  // 加载特征删除配置
   private def loadXMLExcludes(elem: Elem): Unit = {
     _excludes = (elem \ "execludes" \ "execlude").map {
       execlude =>

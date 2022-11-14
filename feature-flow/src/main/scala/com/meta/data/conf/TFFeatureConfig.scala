@@ -1,7 +1,7 @@
 package com.meta.data.conf
 
 /**
- * description 
+ * tfrecoord 相关配置类
  *
  * @author: weitaoliang
  * @version v1.0

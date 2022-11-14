@@ -36,7 +36,7 @@ object MLUtils {
   }
 
   /**
-   * md5
+   * md5 加密算法
    *
    * @Param [s]
    * @return
@@ -52,7 +52,7 @@ object MLUtils {
   }
 
   /**
-   * sha1
+   * sha1 加密算法
    *
    * @Param [s]
    * @return

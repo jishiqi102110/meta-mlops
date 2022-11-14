@@ -55,20 +55,20 @@ object Hive2RedisUtils extends Logging {
       .setValueType(FeatureDTO.FieldValue.ValueType.INT32)
       .setValue(FeatureDTO.Value.newBuilder.setInt32Val(0))
       .build()
-    val keyplaceHolder = new RedisIntMeta(jedisClusterName, redisKeyPattern, "",
+    // 获取占位符
+    val keyPlaceHolder = new RedisIntMeta(jedisClusterName, redisKeyPattern, "",
       dataSource, intValue, FeatureTypeEnum.USER).keyPlaceHolder.get
-
-
+    // 拿到每个特征的类及获取方法
     val _featureMetasAndGetFeatureMethods = SparkMetaUtils.schemaMetas(
-      spark.sql(sql).drop(colName = keyplaceHolder),
+      spark.sql(sql).drop(colName = keyPlaceHolder),
       redisKeyPattern,
       jedisClusterName,
       defaultValue,
       dataSource)
-
-    runHMset(spark, spark => spark.sql(sql),
+    // 入库
+    runHmset(spark, spark => spark.sql(sql),
       row => {
-        row.getAs[String](fieldName = keyplaceHolder)
+        row.getAs[String](fieldName = keyPlaceHolder)
       },
       _featureMetasAndGetFeatureMethods,
       jedisClusterName,
@@ -89,7 +89,7 @@ object Hive2RedisUtils extends Logging {
    * @Param [batch_size] 这里传入写入redis pipeline模式一次性提交多少命令，默认20,减少redis IO压力,提高写入性能
    * @Param [redisTTL] 特征存储的过期时间,默认60天
    */
-  def runHMset(spark: SparkSession,
+  def runHmset(spark: SparkSession,
                generateDF: SparkSession => DataFrame,
                getIDFromRow: Row => String,
                featureMetasAndGetFeatureMethods: Seq[(RedisFeatureInfo, Row => Array[Byte])],
@@ -97,7 +97,7 @@ object Hive2RedisUtils extends Logging {
                batch_size: Int,
                redisTTL: Int = 60 * 24 * 60 * 60
               ): Unit = {
-    import spark.implicits._ //scalastyle:ignore
+    import spark.implicits._ // scalastyle:ignore
     val startTimeStamp = System.currentTimeMillis()
 
     // 检测是否有异常特征
@@ -109,6 +109,7 @@ object Hive2RedisUtils extends Logging {
       featureMetasAndGetFeatureMethods)
 
     setToRedis(keyAndFields, jedisClusterName, batch_size, redisTTL)
+
     val endTimeStamp = System.currentTimeMillis()
     val redisKey = featureMetasAndGetFeatureMethods.head._1.redisKeyPattern
     val fields = featureMetasAndGetFeatureMethods.map(_._1.redisField).toArray.mkString(",")

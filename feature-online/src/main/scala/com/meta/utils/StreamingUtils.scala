@@ -1,5 +1,6 @@
 package com.meta.utils
 
+import com.meta.Logging
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord}
 import org.apache.kafka.common.TopicPartition
 import org.apache.spark.streaming.StreamingContext
@@ -8,7 +9,8 @@ import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.{CanCommitOffsets, HasOffsetRanges, KafkaUtils, OffsetRange}
 import org.slf4j.{Logger, LoggerFactory}
-import redis.clients.jedis.{Jedis}
+import redis.clients.jedis.Jedis
+
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 
@@ -21,9 +23,8 @@ import scala.collection.JavaConversions._
  * @author: weitaoliang
  * @version v1.0
  * */
-object StreamingUtils {
+object StreamingUtils extends Logging{
 
-  private val logger: Logger = LoggerFactory.getLogger(StreamingUtils.getClass)
   private final val ConsumerConfig_DESERIALIZER_CLASS_CONFIG =
     "org.apache.kafka.common.serialization.StringSerializer"
 
@@ -56,7 +57,7 @@ object StreamingUtils {
         jedis.expire(consumersOffsetKey, 24 * 3 * 60 * 60)
     }
     for (o <- offsetRanges) {
-      logger.info(
+      logInfo(
         s"########################" +
           s" submit topic:${o.topic} " +
           s"partition:${o.partition} " +
@@ -84,7 +85,7 @@ object StreamingUtils {
             val topicPartition = new TopicPartition(topic, i)
             // 将不同partition 对应的offset 增加到fromOffsets中
             fromOffsets += (topicPartition -> offset)
-            logger.debug("#############" +
+            logDebug("#############" +
               s"add topic :$topic partition:$topicPartition offset:$offset")
           }
         }
@@ -109,12 +110,12 @@ object StreamingUtils {
       (rdd, time) =>
         val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
         kafkaStream.get.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
-        logger.info("##################" +
+        logInfo("##################" +
           s"${time.milliseconds} offset" +
           "#########################")
         offsetRanges.foreach {
           offsetRange =>
-            logger.debug("#################" +
+            logDebug("#################" +
               s"topic:${offsetRange.topic}" +
               s"partion:${offsetRange.partition}" +
               s"fromOffset:${offsetRange.fromOffset}" +
@@ -137,7 +138,7 @@ object StreamingUtils {
     val topicSet: Set[String] = topics.split(",").map(_.trim).toSet
     // 获取redis 消费的key
     val consumersOffsetKey = s"kafka-consumers-$groupID-offsets"
-    logger.info(
+    logInfo(
       "#####################" +
         s"acquire kafka consumer key :$consumersOffsetKey" +
         "#####################"

@@ -32,6 +32,10 @@ import scala.collection.immutable.Map
  * */
 
 
+///////////////////////////////////////////////////////////////////////////
+// meta case class define
+///////////////////////////////////////////////////////////////////////////
+
 /** 对应的是 [[FeatureDTO.FLOAT]],默认采用bytes序列化方式及不采用压缩 */
 case class RedisFloatMeta(override val jedisClusterName: JedisClusterName,
                           override val redisKeyPattern: String,
@@ -155,6 +159,10 @@ case class RedisStringListMeta(override val jedisClusterName: JedisClusterName,
     jedisClusterName, redisKeyPattern, redisField, dataSource,
     true, SerializeTypeEnum.PROTO, defaultVal, featureType) with Serializable
 
+
+///////////////////////////////////////////////////////////////////////////
+// meta define
+///////////////////////////////////////////////////////////////////////////
 
 /** Feature类父类，用户可以定义除了目前已经定义的 10种预定义类型特征，根据自己压缩和序列化方式进行设计 */
 class RedisFeatureMeta[T](jedisClusterName: JedisClusterName,
@@ -303,13 +311,14 @@ object RedisFeatureMeta extends Logging {
     new RedisFeatureMeta(jedisClusterName, redisKeyPattern, redisField,
       dataSource, isCompress, serializeType, defaultVal, featureType)
 
+  // scalastyle:off
+  // 这里复杂度超过了限制，但是业务要求
   /**
    * 特征值解析工具
    *
    * @Param [field]
    * @return Any
    */
-
   def parseFeatureField(field: FieldValue): Any = {
     val valueType = field.getValueType
     valueType match {
@@ -329,6 +338,9 @@ object RedisFeatureMeta extends Logging {
       case _ => throw new Exception("不支持此数据类型！")
     }
   }
+
+  // scalastyle:on
+
 }
 
 

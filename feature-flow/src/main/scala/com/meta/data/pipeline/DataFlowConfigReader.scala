@@ -1,6 +1,5 @@
 package com.meta.data.pipeline
 
-import com.alibaba.fastjson.JSONObject
 import com.meta.Logging
 import com.meta.conn.hbase.HbaseConnectInfo
 import com.meta.conn.redis.JedisClusterName

@@ -8,7 +8,8 @@ import org.apache.spark.streaming.dstream.DelayDStream
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 
 /**
- * 通用kafka实时处理任务通用类，同步API
+ * 通用kafka实时处理任务通用类，同步API，所有消费kafka的任务都可使用此类进行实时数据处理，速度没有[[KafkaAsyncProcessingStreaming]]快
+ * 此类适合数据更新需要按照前后顺序进行更新，需要获得更新反馈的应用
  *
  * @author: weitaoliang
  * @version v1.0

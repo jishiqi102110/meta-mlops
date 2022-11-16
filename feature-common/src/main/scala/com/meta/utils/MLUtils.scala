@@ -1,5 +1,6 @@
 package com.meta.utils
 
+import com.meta.entity.FeatureDTO
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Duration, StreamingContext}
 
@@ -35,5 +36,13 @@ object MLUtils {
   /** 获取sparkSession */
   def getSparkStreaming(spark: SparkSession, duration: Duration): StreamingContext = {
     StreamingContext.getActiveOrCreate(() => new StreamingContext(spark.sparkContext, duration))
+  }
+
+  /** 初始化floatMeta */
+  def initFloatMeta(value: Float): FeatureDTO.FieldValue = {
+    FeatureDTO.FieldValue.newBuilder().
+      setValueType(FeatureDTO.FieldValue.ValueType.FLOAT).
+      setValue(FeatureDTO.Value.newBuilder.setFloatVal(value)).
+      build()
   }
 }

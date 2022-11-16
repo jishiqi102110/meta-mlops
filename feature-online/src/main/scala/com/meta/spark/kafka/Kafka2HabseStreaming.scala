@@ -10,7 +10,13 @@ import org.apache.spark.sql.SparkSession
 import scala.collection.JavaConversions._ // scalastyle:ignore
 
 /**
- * kafka 数据入库hbase
+ * kafka数据入库hbase 通用类，用户只需要使用此类，即可完成kafka数据入库任务
+ *
+ * spark SparkSession
+ * kafkaSource [[KafkaSourceStreaming]] kafka相关信息配置类
+ * hbaseConnectInfo [[HbaseConnectInfo]] hbase相关信息配置类
+ * hbaseTableName 需要入库的hbaseTable
+ * eventRDD2PutRDD: RDD[(String, String)] => RDD[Put] 用户自定义RDD[(String, String)]转化为 RDD[Put] 的方法，及用户自定义代码区
  *
  * @author: weitaoliang
  * @version v1.0

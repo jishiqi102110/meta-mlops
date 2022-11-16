@@ -8,22 +8,21 @@ import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.{CanCommitOffsets, HasOffsetRanges, KafkaUtils, OffsetRange}
-import org.slf4j.{Logger, LoggerFactory}
 import redis.clients.jedis.Jedis
-
-import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
+import scala.collection.JavaConversions._ // scalastyle:ignore
 
 /**
  * streamingUtils 用来产生kafka stream
  *
+ * 很多业务都是借助zookeeper或者实时计算平台来帮助记录offset，也有业务使用mysql来记录，这里提供一种，使用redis来记录offset方法，会比zookeeper
+ * 更加稳定
  * 使用redis记录kafka 消费offsets，用户可以提供redis用来记录kafka的 offset,如果redis不存在则就按照用户kafka消费参数消费
  * 如果提供则会在每次消费的时候记录最新的offset,然后在消费的时候从最新的offset进行消费
  *
  * @author: weitaoliang
  * @version v1.0
  * */
-object StreamingUtils extends Logging{
+object StreamingUtils extends Logging {
 
   private final val ConsumerConfig_DESERIALIZER_CLASS_CONFIG =
     "org.apache.kafka.common.serialization.StringSerializer"

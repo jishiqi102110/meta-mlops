@@ -12,8 +12,8 @@ import scala.reflect.runtime.universe
 /**
  * testDataFlowConfigReader 测试类
  *
- * @author weitaoliang 
- * @version V1.0 
+ * @author weitaoliang
+ * @version V1.0
  */
 class testDataFlowConfigReader extends Logging {
 
@@ -57,6 +57,4 @@ class testDataFlowConfigReader extends Logging {
   def testMethodWrapper(): Unit = {
 
   }
-
-
 }

@@ -7,41 +7,41 @@ import com.meta.featuremeta.RedisFloatMeta
 import com.meta.spark.monitor.SparkMonitor
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.StreamingContext
-import org.apache.spark.streaming.dstream.DStream //scalastyle:ignore
+import org.apache.spark.streaming.dstream.DStream
 
 
 class CtrStatStreaming(spark: SparkSession,
                        kafkaSource: KafkaSourceStreaming,
-                       rediKeyPrefix: String,
+                       redisKeyPrefix: String,
                        jedisClusterName: JedisClusterName,
                        idFunArray: Array[(String, String => String)],
-                       parseDstream: DStream[(String, String)] =>
+                       parseDStream: DStream[(String, String)] =>
                          DStream[(Int, String, Set[(String, String)])],
                        redisTTL: Int = 90 * 24 * 60 * 60,
                        alpha: Float = 0.9999f,
                        defaultShow: Float = 2000f,
                        defaultClick: Float = 10f,
                        defaultCtr: Float = 0.0f) extends Serializable with Logging {
-  private var fisrtBatch = true
+  // 首批数据标志
+  private var firstBatch = true
+  // 初始化点击特征meta Map
   private val redisCtrMetasMap = collection.mutable.Map.empty[(String, String), RedisFloatMeta]
   private val redisShowMetasMap = collection.mutable.Map.empty[(String, String), RedisFloatMeta]
   private val redisClickMetasMap = collection.mutable.Map.empty[(String, String), RedisFloatMeta]
-  private val seqOp = (agg: ShowClickAggregator,
-                       showClickInfo: (Int, Set[(String, String)])
-                      ) => agg.add(showClickInfo)
 
-  private val comOp = (agg1: ShowClickAggregator, agg2: ShowClickAggregator
-                      ) => agg1.merge(agg2)
+  private val seqOp = (agg: ShowClickAggregator,
+                       showClickInfo: (Int, Set[(String, String)])) => agg.add(showClickInfo)
+
+  private val comOp = (agg1: ShowClickAggregator, agg2: ShowClickAggregator) => agg1.merge(agg2)
 
   // ctr特征处理
   protected def saveCtr(spark: SparkSession,
                         events: DStream[(Int, String, Set[(String, String)])],
-                        idFunArray: Array[(String, String => String)]
-                        //kafkaSource
-                       ): Unit = {
+                        idFunArray: Array[(String, String => String)]): Unit = {
+
     events.foreachRDD {
       (rdd, time) =>
-        if (fisrtBatch) {
+        if (firstBatch) {
           // 特征注册
           val ctrMetas = rdd.flatMap {
             case (_, _, condinInfo) =>
@@ -50,7 +50,7 @@ class CtrStatStreaming(spark: SparkSession,
             condName => {
               idFunArray.map {
                 case (cateName, _) =>
-                  val redisKeyPattern = s"${rediKeyPrefix}_${cateName}_$condName:{$cateName}"
+                  val redisKeyPattern = s"${redisKeyPrefix}_${cateName}_$condName:{$cateName}"
                   val fieldValue = FeatureDTO.FieldValue.newBuilder().
                     setValueType(FeatureDTO.FieldValue.ValueType.FLOAT).
                     setValue(FeatureDTO.Value.newBuilder.setFloatVal(defaultClick)).
@@ -87,7 +87,7 @@ class CtrStatStreaming(spark: SparkSession,
           }
 
           for ((cateName, _) <- idFunArray) {
-            val redisKeyPattern = s"${rediKeyPrefix}_$cateName:{$cateName}"
+            val redisKeyPattern = s"${redisKeyPrefix}_$cateName:{$cateName}"
             val fieldValue = FeatureDTO.FieldValue.newBuilder().
               setValueType(FeatureDTO.FieldValue.ValueType.FLOAT).
               setValue(FeatureDTO.Value.newBuilder.setFloatVal(defaultCtr)).
@@ -97,7 +97,7 @@ class CtrStatStreaming(spark: SparkSession,
               null, "", fieldValue, FeatureTypeEnum.ITEM)
             featureInfo.register()
           }
-          fisrtBatch = false
+          firstBatch = false
         }
 
         val cacheRDD = rdd.map {
@@ -111,7 +111,7 @@ class CtrStatStreaming(spark: SparkSession,
           }.reduceByKey(_ merge _).foreach {
             case (cateID, aggregator) =>
               val jedis = JedisConnector(jedisClusterName)
-              val redisKeyPattern = s"${rediKeyPrefix}_$cateName:{$cateID}"
+              val redisKeyPattern = s"${redisKeyPrefix}_$cateName:{$cateID}"
               val showKey = s"show_$redisKeyPattern"
               val clickKey = s"click_$redisKeyPattern"
 
@@ -196,7 +196,7 @@ class CtrStatStreaming(spark: SparkSession,
     ssc.sparkContext.setLogLevel("ERROR")
     val partitionNum = spark.sparkContext.getConf.get("spark.executor.instances").toInt
     val kafkaStream = kafkaSource.getKafkaDStream(ssc).repartition(partitionNum)
-    val events = parseDstream(kafkaStream).filter(_ != null)
+    val events = parseDStream(kafkaStream).filter(_ != null)
     saveCtr(spark, events, idFunArray)
     ssc.start()
     ssc.awaitTermination()

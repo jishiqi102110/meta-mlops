@@ -10,9 +10,9 @@ object HbaseRowKeyUtils {
   // hbase 默认分区数
   private final val DEFAULT_PARTITION_NUM = 1000
 
-  // 根据token 及adid 生成rowkey
+  // 根据token id 生成rowKey
   // ttl 过期时间,hbase表设置时间一致
-  // rowkey rowkey 分桶id(3byte) + 时间戳（10byte）+ uuid(9byte) +adid(10byte)  = 32 byte
+  // rowKey 分桶id(3byte) + 时间戳（10byte）+ uuid(9byte) + id(10byte)  = 32 byte
   def getKey(uuid: String, timeStamp: Long, id: String, ttl: Long): String = {
     val key = new StringBuilder
     // 时间戳后三位为分桶id(3)
@@ -21,13 +21,13 @@ object HbaseRowKeyUtils {
     key.append((timeStamp % ttl / 1000).formatted("%010d"))
     // uuid取9位
     key.append(getSampledUUID(uuid, timeStamp))
-    // adid取10位
+    // id取10位
     key.append(id.formatted("%10s").replaceAll(" ", "\\0"))
     key.toString()
   }
 
-  // 根据token 生成rowkey,一个请求对应一个rowkey
-  // rowkey 分桶id(3byte) +时间戳（10byte）+uuid(9byte)
+  // 根据token 生成rowKey,一个请求对应一个rowKey
+  // rowKey 分桶id(3byte) +时间戳（10byte）+uuid(9byte)
   def getKey(uuid: String, timeStamp: Long, ttl: Long,
              partitionNum: Int = DEFAULT_PARTITION_NUM): String = {
     val key = new StringBuilder
@@ -46,10 +46,10 @@ object HbaseRowKeyUtils {
     Math.abs(code % partitionNum).formatted(s"%0${len}d")
   }
 
-  private def getSampledUUID(uuid: String, timwStamp: Long): String = {
+  private def getSampledUUID(uuid: String, timeStamp: Long): String = {
     val str = new StringBuilder
 
-    val start = (timwStamp % 10).toInt
+    val start = (timeStamp % 10).toInt
     for (i <- 0 until (9)) {
       str.append(uuid.charAt(start + i * 2))
     }

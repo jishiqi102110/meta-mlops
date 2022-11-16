@@ -35,6 +35,6 @@ class Kafka2KafkaStreaming(spark: SparkSession,
   }
 
   def run(): Unit = {
-    new KafkaAsynProcessingStreaming(spark, kafkaSource, dataAsynProcess).run()
+    new KafkaAsyncProcessingStreaming(spark, kafkaSource, dataAsynProcess).run()
   }
 }

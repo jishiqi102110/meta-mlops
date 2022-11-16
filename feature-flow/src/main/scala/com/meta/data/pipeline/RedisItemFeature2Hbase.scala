@@ -5,7 +5,7 @@ import com.meta.Logging
 import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.data.conf.HbaseInfoConfig
 import com.meta.data.utils.FlowConstant
-import com.meta.spark.kafka.{KafkaSource, KafkaSourceStreaming}
+import com.meta.spark.kafka.KafkaSourceStreaming
 import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
@@ -51,6 +51,7 @@ object RedisItemFeature2Hbase extends Logging {
         val df = spark.sql(sql)
         if (flag) {
           checkDF(df)
+          flag = false
         }
         df2Hbase(df, config, itemColName)
     }
@@ -58,12 +59,13 @@ object RedisItemFeature2Hbase extends Logging {
 
   /** 根据配置文件从dataFrame获取特征 */
   def df2Hbase(df: DataFrame,
-                       config: DataFlowConfigReader,
-                       itemColName: String): Unit = {
+               config: DataFlowConfigReader,
+               itemColName: String): Unit = {
 
     val dataFlowDriver = DataFlowDriver(config)
     // sql 中必须存在 requestID、requestTimeStamp、item字段，其他字段默认直接入库
     checkDF(df, itemColName)
+
     val fieldsNames = df.columns
     df.rdd.mapPartitions {
       rows =>

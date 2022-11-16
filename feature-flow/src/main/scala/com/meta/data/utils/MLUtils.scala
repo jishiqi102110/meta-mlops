@@ -6,6 +6,7 @@ import com.meta.Logging
 import com.meta.entity.FeatureDTO
 import com.meta.entity.FeatureDTO.FieldValue
 import com.meta.entity.FeatureDTO.FieldValue.ValueType
+import com.meta.utils.CommonConstants
 
 /**
  * 机器学习工具类
@@ -89,14 +90,14 @@ object MLUtils {
   def netTypeEncode(netType: String): Int = {
     if (netType != null && "".equals(netType)) {
       netType match {
-        case FlowConstant.NET_WORK_TYPE_1 => 1
-        case FlowConstant.NET_WORK_TYPE_2 => 2
-        case FlowConstant.NET_WORK_TYPE_3 => 3
-        case FlowConstant.NET_WORK_TYPE_4 => 4
-        case FlowConstant.NET_WORK_TYPE_5 => 5
-        case FlowConstant.NET_WORK_TYPE_6 => 6
-        case FlowConstant.NET_WORK_TYPE_7 => 7
-        case FlowConstant.NET_WORK_TYPE_8 => 8
+        case CommonConstants.NET_WORK_TYPE_1 => 1
+        case CommonConstants.NET_WORK_TYPE_2 => 2
+        case CommonConstants.NET_WORK_TYPE_3 => 3
+        case CommonConstants.NET_WORK_TYPE_4 => 4
+        case CommonConstants.NET_WORK_TYPE_5 => 5
+        case CommonConstants.NET_WORK_TYPE_6 => 6
+        case CommonConstants.NET_WORK_TYPE_7 => 7
+        case CommonConstants.NET_WORK_TYPE_8 => 8
         case _ => 0
       }
     } else {

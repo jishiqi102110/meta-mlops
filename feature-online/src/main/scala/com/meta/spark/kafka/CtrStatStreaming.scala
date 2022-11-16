@@ -5,7 +5,7 @@ import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
 import com.meta.featuremeta.RedisFloatMeta
 import com.meta.spark.monitor.SparkMonitor
-import com.meta.utils.MLUtils
+import com.meta.utils.{CommonConstants, MLUtils}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.DStream
@@ -13,6 +13,7 @@ import org.apache.spark.streaming.dstream.DStream
 /**
  * ctr 交叉特征处理类，使用者可以直接传入需要处理的DStream,存储的key、集群信息、ctr alpha 衰败因子等默认参数即可，
  * ctr计算衰减因子，这样来避免点击、曝光数过低或者过高造成点击率很高或者很低的情况，具体算法论文地址可以找我私聊
+ * 用户使用只需要传入相关参数调用run()方法即可
  *
  * val newSaveTotalShow = oldShow * alpha + aggregator.totalShow
  * val newSaveTotalClick = oldClick * alpha + aggregator.totalClick
@@ -38,11 +39,11 @@ class CtrStatStreaming(spark: SparkSession,
                        idFunArray: Array[(String, String => String)],
                        parseDStream: DStream[(String, String)] =>
                          DStream[(Int, String, Set[(String, String)])],
-                       redisTTL: Int = 90 * 24 * 60 * 60,
-                       alpha: Float = 0.9999f,
-                       defaultShow: Float = 2000f,
-                       defaultClick: Float = 10f,
-                       defaultCtr: Float = 0.0f) extends Serializable with Logging {
+                       redisTTL: Int = CommonConstants.DEFAULT_CTR_REDIS_TTL,
+                       alpha: Float = CommonConstants.DEFAULT_CTR_ALPHA,
+                       defaultShow: Float = CommonConstants.DEFAULT_SHOW,
+                       defaultClick: Float = CommonConstants.DEFAULT_CLICK,
+                       defaultCtr: Float = CommonConstants.DEFAULT_CTR) extends Serializable with Logging {
 
   // 首批数据标志
   private var firstBatch = true

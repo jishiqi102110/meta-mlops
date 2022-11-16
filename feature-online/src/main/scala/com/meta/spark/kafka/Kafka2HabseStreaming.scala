@@ -10,7 +10,7 @@ import org.apache.spark.sql.SparkSession
 import scala.collection.JavaConversions._ // scalastyle:ignore
 
 /**
- * kafka数据入库hbase 通用类，用户只需要使用此类，即可完成kafka数据入库任务
+ * kafka数据入库hbase 通用类，用户只需要使用此类，即可完成kafka数据入库任务,用户使用只需要传入相关参数调用run()方法即可
  *
  * spark SparkSession
  * kafkaSource [[KafkaSourceStreaming]] kafka相关信息配置类
@@ -27,6 +27,7 @@ class Kafka2HabseStreaming(spark: SparkSession,
                            hbaseTableName: String,
                            eventRDD2PutRDD: RDD[(String, String)] => RDD[Put]
                           ) extends Serializable with Logging {
+
   /** 异步数据处理方法RDD[String, String] =》FutureAction[Unit] */
   private def dataAsyncProcess(events: RDD[(String, String)]): FutureAction[Unit] = {
     // 使用用户提供的自定义事件处理方法进行获取，不同业务逻辑不同

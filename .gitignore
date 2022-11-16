@@ -8,3 +8,6 @@
 /target/
 /feature-online/feature-online.iml
 /meta-feature-store.iml
+/feature-flow/target/
+/feature-flow/feature-flow.iml
+/feature-web/feature-web.iml

@@ -4,15 +4,15 @@ import com.alibaba.fastjson.JSONObject
 import com.meta.Logging
 import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.data.conf.HbaseInfoConfig
-import com.meta.data.utils.FlowConstant
 import com.meta.spark.kafka.KafkaSourceStreaming
+import com.meta.utils.CommonConstants
 import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.streaming.StreamingContext
 
-import scala.collection.JavaConversions._ // scalastyle:ignore
-import scala.collection.JavaConverters._ // scalastyle:ignore
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 
@@ -91,7 +91,7 @@ object RedisItemFeature2Hbase extends Logging {
                 if (jedis.hsetnx(distinctKey,
                   s"${itemColName}_$item", "1") == 1L) {
                   // 这里数据过期时间设置为600秒
-                  jedis.expire(distinctKey, FlowConstant.HBASE_BUFFER_TIME_OUT)
+                  jedis.expire(distinctKey, CommonConstants.HBASE_BUFFER_TIME_OUT)
                   val jsonObj = new JSONObject()
                   for (name <- fieldsNames) {
                     jsonObj.put(name, row.getAs[Any](name))
@@ -110,10 +110,10 @@ object RedisItemFeature2Hbase extends Logging {
 
   /** 检查入库sql是否规范 */
   private def checkSql(sql: String): Unit = {
-    assert(sql.contains(FlowConstant.HBASE_REQUEST_ID_NAME) &
-      sql.contains(FlowConstant.HBASE_REQUEST_TIMESTAMP_NAME),
-      s"sql 中必须存在 ${FlowConstant.HBASE_REQUEST_ID_NAME}、" +
-        s"${FlowConstant.HBASE_REQUEST_TIMESTAMP_NAME}!")
+    assert(sql.contains(CommonConstants.HBASE_REQUEST_ID_NAME) &
+      sql.contains(CommonConstants.HBASE_REQUEST_TIMESTAMP_NAME),
+      s"sql 中必须存在 ${CommonConstants.HBASE_REQUEST_ID_NAME}、" +
+        s"${CommonConstants.HBASE_REQUEST_TIMESTAMP_NAME}!")
   }
 
 
@@ -121,15 +121,15 @@ object RedisItemFeature2Hbase extends Logging {
   private def checkDF(df: DataFrame, itemColName: String) {
     val dfColNames = df.columns
     assert(checkDF(df) & dfColNames.contains(itemColName),
-      s"sql 中必须存在 ${FlowConstant.HBASE_REQUEST_ID_NAME}、" +
-        s"${FlowConstant.HBASE_REQUEST_TIMESTAMP_NAME}、$itemColName!")
+      s"sql 中必须存在 ${CommonConstants.HBASE_REQUEST_ID_NAME}、" +
+        s"${CommonConstants.HBASE_REQUEST_TIMESTAMP_NAME}、$itemColName!")
   }
 
   /** 检查dataFrame是否规范 */
   private def checkDF(df: DataFrame): Boolean = {
     val dfColNames = df.columns
-    if (dfColNames.contains(FlowConstant.HBASE_REQUEST_ID_NAME) &&
-      dfColNames.contains(FlowConstant.HBASE_REQUEST_TIMESTAMP_NAME)) {
+    if (dfColNames.contains(CommonConstants.HBASE_REQUEST_ID_NAME) &&
+      dfColNames.contains(CommonConstants.HBASE_REQUEST_TIMESTAMP_NAME)) {
       true
     } else {
       false
@@ -138,8 +138,8 @@ object RedisItemFeature2Hbase extends Logging {
 
   /** 私有方法用来获取rowKey 和请求ID,避免代码重复 */
   private def getIDAndRowKey(row: Row, config: HbaseInfoConfig): (String, String) = {
-    val requestID = row.getAs[String](FlowConstant.HBASE_REQUEST_ID_NAME)
-    val requestTimeStamp = row.getAs[Long](FlowConstant.HBASE_REQUEST_TIMESTAMP_NAME)
+    val requestID = row.getAs[String](CommonConstants.HBASE_REQUEST_ID_NAME)
+    val requestTimeStamp = row.getAs[Long](CommonConstants.HBASE_REQUEST_TIMESTAMP_NAME)
     val rowKey = config.getRowKey(requestID, requestTimeStamp)
     (rowKey, requestID)
   }

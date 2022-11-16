@@ -7,7 +7,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
 /**
- * 将数据从一个kafka发送到另外一个kafka通用类
+ * 将数据从一个kafka发送到另外一个kafka通用类,用户使用只需要传入相关参数调用run()方法即可
  *
  * spark SparkSession
  * kafkaSource [[KafkaSourceStreaming]] kafka相关配置类

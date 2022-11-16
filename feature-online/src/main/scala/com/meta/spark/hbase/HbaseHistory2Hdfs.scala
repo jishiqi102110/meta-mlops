@@ -6,6 +6,4 @@ package com.meta.spark.hbase
  * @author: weitaoliang
  * @version v1.0
  * */
-object HbaseHistory2Hdfs {
-
-}
+object HbaseHistory2Hdfs

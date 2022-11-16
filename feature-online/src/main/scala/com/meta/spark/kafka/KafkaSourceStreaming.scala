@@ -6,7 +6,7 @@ import org.apache.spark.streaming.{Duration, StreamingContext}
 import org.apache.spark.streaming.dstream.DStream
 
 /**
- * kafka消息Streaming工具
+ * kafka消息Streaming工具,用户使用只需要传入相关参数调用run()方法即可
  *
  * kafka 集群信息
  * jedis 为记录kafka 消费offset ,如果传入是null则由kafka自己记录

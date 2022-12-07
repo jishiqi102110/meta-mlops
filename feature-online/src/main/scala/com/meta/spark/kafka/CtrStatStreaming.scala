@@ -43,7 +43,8 @@ class CtrStatStreaming(spark: SparkSession,
                        alpha: Float = CommonConstants.DEFAULT_CTR_ALPHA,
                        defaultShow: Float = CommonConstants.DEFAULT_SHOW,
                        defaultClick: Float = CommonConstants.DEFAULT_CLICK,
-                       defaultCtr: Float = CommonConstants.DEFAULT_CTR) extends Serializable with Logging {
+                       defaultCtr: Float = CommonConstants.DEFAULT_CTR
+                      ) extends Serializable with Logging {
 
   // 首批数据标志
   private var firstBatch = true

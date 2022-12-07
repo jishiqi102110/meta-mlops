@@ -32,7 +32,8 @@ abstract class RedisFeatureInfo(val jedisClusterName: JedisClusterName,
                                 val isCompress: Boolean,
                                 val serializeType: SerializeTypeEnum,
                                 val defaultVal: FieldValue,
-                                val featureType: FeatureTypeEnum) extends Serializable with Logging {
+                                val featureType: FeatureTypeEnum
+                               ) extends Serializable with Logging {
 
   // 用于描述特征元数据类信息
   protected val generic_type: String

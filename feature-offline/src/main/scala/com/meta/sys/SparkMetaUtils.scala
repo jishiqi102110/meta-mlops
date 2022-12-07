@@ -7,15 +7,20 @@ import com.meta.conn.redis.JedisClusterName
 import com.meta.entity.FeatureDTO.{FloatList, Int32List, Int64List, MAP_STRING_FLOAT, MAP_STRING_STRING, StringList}
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
 import com.meta.entity.FeatureTypeEnum.FeatureTypeEnum
-import com.meta.featuremeta.{RedisFeatureInfo, RedisFloatListMeta, RedisFloatMeta, RedisIntListMeta, RedisIntMeta, RedisLongListMeta, RedisMapFloatMeta, RedisMapStringMeta, RedisSeqListMeta, RedisStringListMeta, RedisStringMeta}
+import com.meta.featuremeta.{
+  RedisFeatureInfo, RedisFloatListMeta, RedisFloatMeta, RedisIntListMeta,
+  RedisIntMeta, RedisLongListMeta, RedisMapFloatMeta, RedisMapStringMeta,
+  RedisSeqListMeta, RedisStringListMeta, RedisStringMeta
+}
+
 import org.apache.spark.sql.types.{ArrayType, DoubleType, FloatType, IntegerType, LongType, MapType, StringType}
 import org.apache.spark.sql.{DataFrame, Row}
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConverters._ // scalastyle:ignore
 import scala.collection.JavaConversions._ // scalastyle:ignore
 
 /**
- * spark meta-utils 将hive数据解析为meta元数据并获取到特征序列化值,用户可以使用runSql 方式直接入库注册特征，这是离线特征入库的SDK
+ * SparkMetaUtils 将hive raw 数据解析为meta元数据并获取到特征序列化值
  * 用于离线特征平台
  *
  * @author weitaoliang
@@ -29,7 +34,7 @@ object SparkMetaUtils extends Logging {
   // scalastyle:off
 
   /**
-   * 这里去获得每个特征对应原始信息构造 RedisFeatureInfo，以及从row原始信息转化成FeatureDTO bytes
+   * 这里去获得每个特征对应原始信息构造 RedisFeatureInfo，以及从raw原始信息转化成FeatureDTO bytes
    *
    * @Param [df] 去掉填充符的用户sql DataFrame
    * @Param [redisKeyPattern] 特征存储key egg:user_commonKey:{device_id}
@@ -43,7 +48,7 @@ object SparkMetaUtils extends Logging {
                                                defaultValues: Map[String, Any],
                                                dataSource: String): Seq[(RedisFeatureInfo, Row => Array[Byte])] = {
 
-
+    // 获取每个特征的元数据信息以及，从raw原始信息转化成FeatureDTO bytes的方法Seq
     val _featureMetasAndGetFeatureMethods: Seq[(RedisFeatureInfo, Row => Array[Byte])] = {
       df.schema.fields.map {
         field =>
@@ -229,7 +234,7 @@ object SparkMetaUtils extends Logging {
                           redisField: String): FeatureTypeEnum = {
     if (redisField != null && redisField.contains("{")) {
       FeatureTypeEnum.CROSS
-    } else if (redisKeyPattern.contains("deviceid_md5")) { // 这里业务统一用 deviceid_md5标识用户，所以才用这个判断，可以自行更改
+    } else if (redisKeyPattern.contains("deviceId_md5")) { // 这里业务统一用 deviceId_md5标识用户，所以才用这个判断，可以自行更改
       FeatureTypeEnum.USER
     } else {
       FeatureTypeEnum.ITEM

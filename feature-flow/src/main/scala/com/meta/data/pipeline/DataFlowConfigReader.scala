@@ -11,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.xml.Elem
 
 /**
- * 数据流配置文件读取类
+ * 特征获取处理配置文件读取器
  *
  * @author: weitaoliang
  * @version v1.0
@@ -80,14 +80,19 @@ class DataFlowConfigReader extends Serializable with Logging {
   private def loadFromXml(elem: Elem): Unit = {
     // 1.提取xml文件redis 相关配置
     loadXMlRedisNames(elem)
+
     // 2.提取xml meta相关配置
     loadXMlFeatureMetas(elem)
+
     // 3.进行排序
-    // _featureMetas = sortFeatureMeta(_featureMetas)
+    _featureMetas = sortFeatureMeta(_featureMetas)
+
     // 4.提取xml hbase相关配置
     loadXMLHbaseConfig(elem)
+
     // 5.提取转化操作
     loadXMLTransformers(elem)
+
     // 6.提取剔除特征配置
     loadXMLExcludes(elem)
   }

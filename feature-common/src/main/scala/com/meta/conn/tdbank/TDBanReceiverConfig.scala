@@ -17,6 +17,7 @@ class TDBanReceiverConfig extends TubeReceiverConfig {
   private var _consumeFromMaxOffset: Boolean = true
   private var _filterOnRemote: Boolean = true
   private var _storageLevel: StorageLevel = StorageLevel.MEMORY_AND_DISK
+
   // 指定消费的接口id，null表示消费topic下所有的tid/iname,oceanus写入的为iNames，其他一般是tids
   private var _tids: Array[String] = _
 

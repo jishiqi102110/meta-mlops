@@ -22,12 +22,14 @@ class UnitTest {
   def testRunSql(): Unit = {
     // 这里必须加个bin 目录，不加会报找不到utils,这里设置后就不用去设置hadoop环境变量了
     val hadoopDir = "D:\\bin\\winutils.exe"
+
     val spark = MLUtils.getLocalSparkSession("testLocal", hadoopDir)
     import spark.implicits._
 
     val arr = Array(("id1", 2, "f1"), ("id2", 1, "f2"), ("id3", 3, "f3"))
 
-    // 构造特征入库DF,其中必须包含特征 redisKeyPattern 的填充符,如下的例子就是“id” ,需要入库注册的特征包括 intValue、StringValue
+    // 构造特征入库DF,其中必须包含特征 redisKeyPattern 的填充符,
+    //如下的例子就是“id” ,需要入库注册的特征包括 intValue、StringValue
     val df = spark.sparkContext.parallelize(arr).toDF("id", "intValue", "stringValue")
     df.createTempView("DF")
 

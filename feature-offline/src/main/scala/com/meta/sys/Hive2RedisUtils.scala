@@ -2,21 +2,27 @@ package com.meta.sys
 
 import com.meta.conn.redis.{JedisClusterName, JedisConnector}
 import com.meta.entity.{FeatureDTO, FeatureTypeEnum}
-import com.meta.featuremeta.{RedisFeatureInfo, RedisFeatureMeta, RedisIntMeta}
-import org.slf4j.LoggerFactory
+import com.meta.featuremeta.{RedisFeatureInfo, RedisIntMeta}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
-import java.util
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 import com.meta.Logging
 
 import scala.collection.mutable
 import scala.util.Random
-import scala.collection.JavaConverters._
+import scala.collection.JavaConverters._ //scalastyle:ignore
 import scala.collection.JavaConversions._ //scalastyle:ignore
 
 /**
- * 离线特征入库工具类,帮助用户使用sql就可以完成特征的注册及入库，只需要调用 runSql函数即可，此方法是特征平台离线特征入库平台的底层SDK
+ * 统一离线特征生产框架
+ *
+ * 旧的特征生产方式，没有形成固化的特征生产方式，特征生产需求散落在不同同学手中，实现方式、存储格式也是不一致，这在迭代效率、特征维护、
+ * 存储集群的稳定性、特征正确性、特征治理上存在很大的问题，所以我们需要从这种烟囱模式的开发中走出来，为此我进行统一特征生产框开发，
+ * 将Raw 数据抽取转化为一个特征，在特征平台注册为一个新特征元数据信息（Metadata），描述了这个特征存储的方式、数据类型，长度，默认值等，
+ * 并且可以对该特征设置多项目共享，达到特征复用的目的。根据特征的标准化格式我们进行元数据抽象，形成特征生产SDK，
+ * 针对以上特征元数据抽象，我们编写了我们的特征基础SDK,分别对上述基础特征进行分装处理，
+ * 分别包括：特征存储key、field、数据源、存储类型、存储的集群、序列化方式、压缩方式、默认值、特征类型等信息，用来做特征的信息注册及血缘追踪
+ * 帮助用户使用sql就可以完成特征的注册及入库
  *
  * @author weitaoliang
  * @version V1.0
@@ -24,11 +30,12 @@ import scala.collection.JavaConversions._ //scalastyle:ignore
 
 
 object Hive2RedisUtils extends Logging {
+
   private final val CHAR_SET_NAME = "UTF-8"
 
   /**
-   * 特征入库主要方法，用户只需要传入类似hive sql 进行取数即可，但是注意的是，sql必须包含redisKeyPattern里面的填充符（keyplaceHolder）,
-   * 例如device_id
+   * 特征入库主要方法，用户只需要传入类似hive sql 进行取数即可，但是注意的是，
+   * sql必须包含redisKeyPattern里面的填充符（keyPlaceHolder）,例如device_id
    *
    * @Param [spark] sparkSession对象
    * @Param [sql] 用户sql egg: select device_id,age,sex,netType from table_test where xxx,其中sql中必须包含 redisKeyPattern
